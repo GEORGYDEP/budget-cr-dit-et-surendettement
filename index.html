@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget Life Simulator - Gestion Budgétaire</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Écran d'accueil -->
+        <div id="welcome-screen" class="screen active">
+            <div class="welcome-content">
+                <h1>💰 Budget Life Simulator</h1>
+                <p class="subtitle">Apprends à gérer ton budget comme un pro !</p>
+                <div class="game-info">
+                    <p>🎯 Objectif : Gérer tes finances pendant 12 mois sans tomber dans le surendettement</p>
+                    <p>⏱️ Durée : 45-60 minutes</p>
+                    <p>🏆 Gagne des badges en faisant les bons choix !</p>
+                </div>
+                <div class="difficulty-selection">
+                    <h3>Choisis ton niveau :</h3>
+                    <button class="btn-difficulty" data-level="facile">😊 Facile<br><small>Revenus confortables</small></button>
+                    <button class="btn-difficulty" data-level="moyen">😐 Moyen<br><small>Budget serré</small></button>
+                    <button class="btn-difficulty" data-level="difficile">😰 Difficile<br><small>Survie financière</small></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran de création du personnage -->
+        <div id="character-screen" class="screen">
+            <div class="character-content">
+                <h2>👤 Crée ton profil</h2>
+                <div class="character-form">
+                    <label>Ton prénom :</label>
+                    <input type="text" id="player-name" placeholder="Entre ton prénom" maxlength="20">
+                    
+                    <label>Ta situation :</label>
+                    <select id="player-situation">
+                        <option value="seul">Personne seule</option>
+                        <option value="couple">Couple sans enfants</option>
+                        <option value="famille">Famille avec 2 enfants</option>
+                    </select>
+
+                    <label>Ton emploi :</label>
+                    <select id="player-job">
+                        <option value="employe">Employé(e) de bureau</option>
+                        <option value="ouvrier">Ouvrier(ère)</option>
+                        <option value="vendeur">Vendeur(euse)</option>
+                        <option value="technicien">Technicien(ne)</option>
+                    </select>
+
+                    <button id="start-game-btn" class="btn-primary">Commencer l'aventure ! 🚀</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Écran de jeu principal -->
+        <div id="game-screen" class="screen">
+            <!-- Header avec infos -->
+            <div class="game-header">
+                <div class="player-info">
+                    <span class="player-name-display">👤 <span id="display-name"></span></span>
+                    <span class="month-display">📅 Mois <span id="current-month">1</span>/12</span>
+                </div>
+                <div class="budget-gauge">
+                    <div class="gauge-label">💰 Solde</div>
+                    <div class="gauge-value" id="current-balance">0 €</div>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill" id="gauge-fill"></div>
+                    </div>
+                </div>
+                <div class="score-display">
+                    <span>🏆 Score : <span id="total-score">0</span></span>
+                </div>
+            </div>
+
+            <!-- Zone de badges -->
+            <div class="badges-bar">
+                <div class="badge locked" id="badge-economie" title="Roi de l'épargne">🏆</div>
+                <div class="badge locked" id="badge-prudent" title="Acheteur prudent">🛡️</div>
+                <div class="badge locked" id="badge-comparateur" title="Expert comparaison">🔍</div>
+                <div class="badge locked" id="badge-prevoyant" title="Maître de la prévoyance">📊</div>
+                <div class="badge locked" id="badge-survivor" title="Survivant financier">💪</div>
+            </div>
+
+            <!-- Contenu principal du jeu -->
+            <div class="game-content">
+                <!-- Phase 1: Budget prévisionnel -->
+                <div id="phase-budget" class="phase-content">
+                    <h2>📋 Mois 1 : Établis ton budget prévisionnel</h2>
+                    <p class="phase-instruction">Classe chaque élément dans la bonne catégorie (clique pour déplacer)</p>
+                    
+                    <div class="budget-builder">
+                        <div class="budget-section">
+                            <h3>💵 RECETTES (Revenus)</h3>
+                            <div class="drop-zone" id="recettes-zone" data-type="recettes">
+                                <p class="zone-hint">Dépose ici les revenus</p>
+                            </div>
+                            <div class="total-display">Total : <span id="total-recettes">0</span> €</div>
+                        </div>
+
+                        <div class="budget-section">
+                            <h3>🏠 DÉPENSES FIXES</h3>
+                            <div class="drop-zone" id="fixes-zone" data-type="fixes">
+                                <p class="zone-hint">Dépose ici les dépenses obligatoires et stables</p>
+                            </div>
+                            <div class="total-display">Total : <span id="total-fixes">0</span> €</div>
+                        </div>
+
+                        <div class="budget-section">
+                            <h3>🛒 DÉPENSES VARIABLES</h3>
+                            <div class="drop-zone" id="variables-zone" data-type="variables">
+                                <p class="zone-hint">Dépose ici les dépenses modifiables</p>
+                            </div>
+                            <div class="total-display">Total : <span id="total-variables">0</span> €</div>
+                        </div>
+                    </div>
+
+                    <div class="items-to-classify">
+                        <h4>🎯 Éléments à classer :</h4>
+                        <div id="items-pool"></div>
+                    </div>
+
+                    <div class="phase-actions">
+                        <button id="validate-budget-btn" class="btn-primary" disabled>Valider mon budget 📊</button>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Gestion mensuelle -->
+                <div id="phase-monthly" class="phase-content">
+                    <div class="monthly-summary">
+                        <h2 id="monthly-title">📅 Mois 2 : Gestion du quotidien</h2>
+                        <div class="budget-recap">
+                            <div class="recap-item">
+                                <span>Revenus prévus :</span>
+                                <span class="amount-positive" id="recap-revenus">0 €</span>
+                            </div>
+                            <div class="recap-item">
+                                <span>Dépenses fixes :</span>
+                                <span class="amount-negative" id="recap-fixes">0 €</span>
+                            </div>
+                            <div class="recap-item">
+                                <span>Reste disponible :</span>
+                                <span class="amount-neutral" id="recap-reste">0 €</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card" id="event-card">
+                        <div class="event-icon">⚡</div>
+                        <h3 id="event-title">Situation du mois</h3>
+                        <p id="event-description"></p>
+                        <div class="event-choices" id="event-choices">
+                            <!-- Les choix seront ajoutés dynamiquement -->
+                        </div>
+                    </div>
+
+                    <div class="monthly-stats">
+                        <canvas id="expenses-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Phase 3: Événement spécial / Crise -->
+                <div id="phase-crisis" class="phase-content">
+                    <div class="crisis-alert">
+                        <div class="crisis-icon">⚠️</div>
+                        <h2 id="crisis-title">Événement majeur !</h2>
+                        <p id="crisis-description"></p>
+                        <div class="crisis-impact">
+                            <h4>Impact sur ton budget :</h4>
+                            <div id="crisis-impact-details"></div>
+                        </div>
+                        <div class="crisis-choices" id="crisis-choices">
+                            <!-- Les choix seront ajoutés dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: Quiz éducatif -->
+                <div id="phase-quiz" class="phase-content">
+                    <h2>🧠 Quiz : Teste tes connaissances</h2>
+                    <div class="quiz-progress">
+                        <span>Question <span id="quiz-current">1</span> / <span id="quiz-total">5</span></span>
+                    </div>
+                    <div class="quiz-card">
+                        <h3 id="quiz-question"></h3>
+                        <div class="quiz-options" id="quiz-options">
+                            <!-- Options ajoutées dynamiquement -->
+                        </div>
+                        <div class="quiz-feedback" id="quiz-feedback"></div>
+                    </div>
+                </div>
+
+                <!-- Phase 5: Bilan final -->
+                <div id="phase-final" class="phase-content">
+                    <div class="final-report">
+                        <h2>🎊 Fin de la simulation !</h2>
+                        <div class="final-score-card">
+                            <div class="final-score-big">
+                                <span>Score final</span>
+                                <div class="score-number" id="final-score-display">0</div>
+                                <div class="score-rank" id="score-rank"></div>
+                            </div>
+                        </div>
+
+                        <div class="final-stats">
+                            <h3>📊 Tes statistiques :</h3>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-icon">💰</div>
+                                    <div class="stat-label">Solde final</div>
+                                    <div class="stat-value" id="stat-balance">0 €</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-icon">💳</div>
+                                    <div class="stat-label">Crédits pris</div>
+                                    <div class="stat-value" id="stat-credits">0</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-icon">💎</div>
+                                    <div class="stat-label">Épargne constituée</div>
+                                    <div class="stat-value" id="stat-savings">0 €</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-icon">🎯</div>
+                                    <div class="stat-label">Bonnes décisions</div>
+                                    <div class="stat-value" id="stat-good-choices">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="badges-earned">
+                            <h3>🏆 Badges obtenus :</h3>
+                            <div id="badges-final-list"></div>
+                        </div>
+
+                        <div class="final-advice">
+                            <h3>💡 Analyse de ta gestion :</h3>
+                            <div id="final-feedback"></div>
+                        </div>
+
+                        <div class="knowledge-recap">
+                            <h3>📚 Points clés à retenir :</h3>
+                            <div class="key-points">
+                                <div class="key-point">
+                                    <strong>Budget prévisionnel :</strong> Planifier ses recettes et dépenses pour éviter les mauvaises surprises.
+                                </div>
+                                <div class="key-point">
+                                    <strong>Dépenses fixes vs variables :</strong> Les fixes sont prioritaires, les variables peuvent être ajustées.
+                                </div>
+                                <div class="key-point">
+                                    <strong>Épargne de précaution :</strong> Essentielle pour faire face aux imprévus (panne, maladie...).
+                                </div>
+                                <div class="key-point">
+                                    <strong>Crédit = danger :</strong> Ne jamais prendre un crédit pour en rembourser un autre.
+                                </div>
+                                <div class="key-point">
+                                    <strong>Aide disponible :</strong> Médiateur de dettes, CPAS, procédure judiciaire en cas de surendettement.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="final-actions">
+                            <button id="restart-btn" class="btn-primary">🔄 Rejouer</button>
+                            <button id="print-btn" class="btn-secondary">🖨️ Imprimer mon rapport</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal pour les explications -->
+        <div id="info-modal" class="modal">
+            <div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h3 id="modal-title"></h3>
+                <div id="modal-body"></div>
+                <button class="btn-primary modal-ok">Compris !</button>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div id="notification" class="notification"></div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
