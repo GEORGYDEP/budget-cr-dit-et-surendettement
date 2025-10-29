@@ -234,6 +234,7 @@ class BudgetGame {
             itemEl.dataset.id = item.id;
             itemEl.dataset.type = item.type;
             itemEl.dataset.amount = item.amount;
+            itemEl.dataset.label = item.label; // Stocker le label pour extraction facile
             itemEl.innerHTML = `
                 ${item.label}
                 <span class="item-amount">${item.amount} €</span>
@@ -460,48 +461,49 @@ class BudgetGame {
         const deficit = this.currentDeficit;
         const creditCost = Math.round(deficit * 1.15);
         const interestAmount = Math.round(deficit * 0.15);
+        const monthlyRepayment = Math.round(creditCost / 12);
 
-        // Ajouter le montant du déficit au solde (crédit accordé)
-        this.state.balance += deficit;
-
-        // NOUVEAU : Ajouter le crédit aux revenus mensuels pour équilibrer le budget
+        // Ajouter le crédit aux revenus mensuels pour équilibrer le budget prévisionnel
+        // (et NON au solde du compte, comme demandé pour la cohérence pédagogique)
         this.state.monthlyIncome += deficit;
 
-        // Ajouter la dette mensuelle (à rembourser sur 12 mois par exemple)
-        // Pour simplifier, on ajoute la dette totale au remboursement mensuel
-        // Dans un vrai système, on répartirait sur plusieurs mois
-        this.state.monthlyDebt += Math.round(creditCost / 12);
+        // Tracker la dette mensuelle pour la déduction automatique
+        // Note : La dette est payée chaque mois dans advanceMonth(), mais n'est pas ajoutée
+        // aux dépenses fixes affichées afin que le budget montre un équilibre (reste = 0)
+        this.state.monthlyDebt += monthlyRepayment;
 
         // Augmenter le compteur de crédits
         this.state.credits += 1;
 
-        // Appliquer un score négatif
+        // Appliquer un score négatif (pénalité de 15%)
         this.state.totalScore -= creditCost;
 
         // Compter comme mauvaise décision
         this.state.badChoices += 1;
 
-        // Recalculer le budget équilibré
+        // Calculer le nouveau reste disponible (devrait être proche de 0)
         const newResteDisponible = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
 
         // Message de feedback amélioré avec informations d'équilibrage
         const message = `
             <p><strong>✅ Votre budget a été équilibré grâce à un emprunt.</strong></p>
-            <p style="color: #f59e0b;"><strong>⚠️ Attention :</strong> Ce crédit entraîne un coût de financement supplémentaire (+15%).</p>
+            <p style="color: #f59e0b;"><strong>⚠️ Attention :</strong> Ce crédit augmente vos revenus prévus, mais génère un coût supplémentaire de 15%.</p>
             <hr style="margin: 15px 0; border: 1px solid #ddd;">
             <p><strong>📊 Détails du crédit :</strong></p>
             <p>💳 Montant emprunté : ${deficit} €</p>
             <p>💰 Intérêts (15%) : ${interestAmount} €</p>
             <p><strong>⚠️ Coût total : ${creditCost} €</strong></p>
+            <p>📅 Remboursement mensuel : ${monthlyRepayment} € (sur 12 mois)</p>
             <hr style="margin: 15px 0; border: 1px solid #ddd;">
             <p><strong>📊 Nouveau budget équilibré :</strong></p>
             <p>💵 Revenus prévus : ${this.state.monthlyIncome} € <span style="color: #10b981;">(+${deficit} € de crédit)</span></p>
             <p>🏠 Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
             <p>🛒 Dépenses variables : ${this.state.monthlyVariableExpenses} €</p>
-            <p><strong>✅ Reste disponible : ${newResteDisponible} €</strong></p>
+            <p><strong>💰 Dépenses totales : ${this.state.monthlyFixedExpenses + this.state.monthlyVariableExpenses} €</strong></p>
+            <p><strong style="color: ${newResteDisponible === 0 ? '#f59e0b' : (newResteDisponible > 0 ? '#10b981' : '#ef4444')};">✅ Reste disponible : ${newResteDisponible} €</strong></p>
             <hr style="margin: 15px 0; border: 1px solid #ddd;">
-            <p>📉 Impact sur ton score : -${creditCost} points</p>
-            <p><br><em>Le remboursement mensuel de ${Math.round(creditCost / 12)} € sera ajouté à tes dépenses fixes.</em></p>
+            <p>📉 Impact sur votre score : -${creditCost} points</p>
+            <p><br><em>💸 Le remboursement mensuel de ${monthlyRepayment} € sera automatiquement déduit de votre solde chaque mois.</em></p>
             <p style="color: #ef4444;"><strong>⚠️ Important :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
         `;
 
@@ -533,7 +535,7 @@ class BudgetGame {
 
         // Stocker les dépenses variables avec leurs montants actuels
         this.variableExpenses = variableItems.map(item => ({
-            name: item.textContent.split('\n')[0].trim(),
+            name: item.dataset.label || item.textContent.split('\n')[0].trim(), // Utiliser le dataset.label
             originalAmount: parseInt(item.dataset.amount),
             currentAmount: parseInt(item.dataset.amount),
             element: item
