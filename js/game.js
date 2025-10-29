@@ -59,6 +59,22 @@ class BudgetGame {
             this.validateBudget();
         });
 
+        // Gestion du déséquilibre budgétaire
+        document.getElementById('reduce-expenses-btn').addEventListener('click', () => {
+            this.showReduceExpenses();
+        });
+        document.getElementById('take-credit-btn').addEventListener('click', () => {
+            this.handleTakeCredit();
+        });
+
+        // Réduction des dépenses
+        document.getElementById('revalidate-budget-btn').addEventListener('click', () => {
+            this.revalidateBudget();
+        });
+        document.getElementById('cancel-reduction-btn').addEventListener('click', () => {
+            this.cancelReduction();
+        });
+
         // Modal - Bouton "Compris"
         document.querySelector('.modal-close').addEventListener('click', () => {
             this.hideModal();
@@ -358,7 +374,7 @@ class BudgetGame {
 
     validateBudget() {
         const totals = this.updateBudgetTotals();
-        
+
         this.state.monthlyIncome = totals.totalRecettes;
         this.state.monthlyFixedExpenses = totals.totalFixes;
         this.state.monthlyVariableExpenses = totals.totalVariables;
@@ -366,6 +382,13 @@ class BudgetGame {
 
         const reste = totals.totalRecettes - totals.totalFixes - totals.totalVariables;
 
+        // Si déficit, afficher l'écran de déséquilibre
+        if (reste < 0) {
+            this.showBudgetImbalance(Math.abs(reste));
+            return;
+        }
+
+        // Si équilibré ou excédent, afficher le message de validation
         let message = `
             <p><strong>Ton budget prévisionnel est établi !</strong></p>
             <p>📊 Recettes totales : ${totals.totalRecettes} €</p>
@@ -374,9 +397,7 @@ class BudgetGame {
             <p><strong>Solde : ${reste} €</strong></p>
         `;
 
-        if (reste < 0) {
-            message += `<p style="color: #ef4444;">⚠️ Attention ! Tes dépenses dépassent tes revenus de ${Math.abs(reste)} €. Tu es en déficit budgétaire. Il faudra réduire les dépenses variables.</p>`;
-        } else if (reste > 0) {
+        if (reste > 0) {
             message += `<p style="color: #10b981;">✅ Parfait ! Tu dégages un excédent de ${reste} €. Tu peux épargner !</p>`;
         } else {
             message += `<p style="color: #f59e0b;">⚖️ Budget équilibré : recettes = dépenses.</p>`;
@@ -391,10 +412,6 @@ class BudgetGame {
             </ul>
         `;
 
-        if (reste < 0) {
-            message += `<p style="color: #ef4444;"><em>${ProfileRules.getSavingsWarning()}</em></p>`;
-        }
-
         this.showModal('Budget validé !', message, () => {
             this.state.currentMonth = 2;
             this.updateDisplay();
@@ -405,7 +422,7 @@ class BudgetGame {
     nextMonth() {
         // Vérifier s'il y a un événement ce mois
         const event = GAME_DATA.monthlyEvents.find(e => e.month === this.state.currentMonth);
-        
+
         if (event) {
             if (event.isCrisis) {
                 this.showCrisis(event);
@@ -420,6 +437,235 @@ class BudgetGame {
                 this.advanceMonth();
             }
         }
+    }
+
+    // ========================================
+    // GESTION DU DÉSÉQUILIBRE BUDGÉTAIRE
+    // ========================================
+
+    showBudgetImbalance(deficit) {
+        this.currentDeficit = deficit;
+        this.showPhase('phase-budget-imbalance');
+
+        // Afficher le montant du déficit
+        document.getElementById('deficit-amount').textContent = deficit;
+
+        // Calculer le coût total du crédit (déficit + 15%)
+        const creditCost = deficit * 1.15;
+        document.getElementById('credit-details').textContent =
+            `Coût total avec intérêts (15%) : ${Math.round(creditCost)} €`;
+    }
+
+    handleTakeCredit() {
+        const deficit = this.currentDeficit;
+        const creditCost = Math.round(deficit * 1.15);
+        const interestAmount = Math.round(deficit * 0.15);
+
+        // Ajouter le montant du déficit au solde (crédit accordé)
+        this.state.balance += deficit;
+
+        // Ajouter la dette mensuelle (à rembourser sur 12 mois par exemple)
+        // Pour simplifier, on ajoute la dette totale au remboursement mensuel
+        // Dans un vrai système, on répartirait sur plusieurs mois
+        this.state.monthlyDebt += Math.round(creditCost / 12);
+
+        // Augmenter le compteur de crédits
+        this.state.credits += 1;
+
+        // Appliquer un score négatif
+        this.state.totalScore -= creditCost;
+
+        // Compter comme mauvaise décision
+        this.state.badChoices += 1;
+
+        // Stocker les dépenses variables ajustées (aucun changement dans ce cas)
+        // car l'utilisateur n'a pas réduit les dépenses
+
+        // Message de feedback
+        const message = `
+            <p><strong>Crédit accordé</strong></p>
+            <p>💳 Montant emprunté : ${deficit} €</p>
+            <p>💰 Intérêts (15%) : ${interestAmount} €</p>
+            <p><strong>⚠️ Coût total : ${creditCost} €</strong></p>
+            <p>📉 Impact sur ton score : -${creditCost} points</p>
+            <p><br><em>Le remboursement mensuel de ${Math.round(creditCost / 12)} € sera ajouté à tes dépenses fixes.</em></p>
+            <p style="color: #ef4444;"><strong>⚠️ Attention :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
+        `;
+
+        this.showModal('Crédit contracté', message, () => {
+            this.state.currentMonth = 2;
+            this.updateDisplay();
+            this.nextMonth();
+        });
+    }
+
+    showReduceExpenses() {
+        this.showPhase('phase-reduce-expenses');
+
+        // Afficher le déficit à combler
+        document.getElementById('deficit-to-cover').textContent = this.currentDeficit;
+
+        // Afficher le récapitulatif
+        document.getElementById('reduce-revenus').textContent = this.state.monthlyIncome + ' €';
+        document.getElementById('reduce-fixes').textContent = this.state.monthlyFixedExpenses + ' €';
+
+        // Créer la liste des dépenses variables modifiables
+        this.populateVariableExpenses();
+        this.updateReduceExpensesDisplay();
+    }
+
+    populateVariableExpenses() {
+        const variablesZone = document.getElementById('variables-zone');
+        const variableItems = Array.from(variablesZone.querySelectorAll('.budget-item'));
+
+        // Stocker les dépenses variables avec leurs montants actuels
+        this.variableExpenses = variableItems.map(item => ({
+            name: item.textContent.split('\n')[0].trim(),
+            originalAmount: parseInt(item.dataset.amount),
+            currentAmount: parseInt(item.dataset.amount),
+            element: item
+        }));
+
+        // Afficher les contrôles d'ajustement
+        const container = document.getElementById('variable-expenses-list');
+        container.innerHTML = '';
+
+        this.variableExpenses.forEach((expense, index) => {
+            const expenseDiv = document.createElement('div');
+            expenseDiv.className = 'expense-item';
+            expenseDiv.innerHTML = `
+                <div class="expense-info">
+                    <div class="expense-name">${expense.name}</div>
+                    <div class="expense-original">Montant initial : ${expense.originalAmount} €</div>
+                </div>
+                <div class="expense-controls">
+                    <button onclick="game.adjustExpense(${index}, -10)" aria-label="Réduire de 10€">-</button>
+                    <input type="number"
+                           class="expense-input"
+                           value="${expense.currentAmount}"
+                           min="0"
+                           max="${expense.originalAmount}"
+                           data-index="${index}"
+                           onchange="game.updateExpenseValue(${index}, this.value)">
+                    <button onclick="game.adjustExpense(${index}, 10)" aria-label="Augmenter de 10€">+</button>
+                </div>
+            `;
+            container.appendChild(expenseDiv);
+        });
+    }
+
+    adjustExpense(index, amount) {
+        const expense = this.variableExpenses[index];
+        let newAmount = expense.currentAmount + amount;
+
+        // Limiter entre 0 et le montant original
+        newAmount = Math.max(0, Math.min(expense.originalAmount, newAmount));
+
+        expense.currentAmount = newAmount;
+
+        // Mettre à jour l'affichage
+        const input = document.querySelector(`input[data-index="${index}"]`);
+        if (input) {
+            input.value = newAmount;
+        }
+
+        this.updateReduceExpensesDisplay();
+    }
+
+    updateExpenseValue(index, value) {
+        const expense = this.variableExpenses[index];
+        let newAmount = parseInt(value) || 0;
+
+        // Limiter entre 0 et le montant original
+        newAmount = Math.max(0, Math.min(expense.originalAmount, newAmount));
+
+        expense.currentAmount = newAmount;
+        this.updateReduceExpensesDisplay();
+    }
+
+    updateReduceExpensesDisplay() {
+        // Calculer le nouveau total des dépenses variables
+        const newVariablesTotal = this.variableExpenses.reduce((sum, exp) => sum + exp.currentAmount, 0);
+
+        // Calculer le nouveau solde
+        const newSolde = this.state.monthlyIncome - this.state.monthlyFixedExpenses - newVariablesTotal;
+
+        // Mettre à jour l'affichage
+        document.getElementById('reduce-variables-total').textContent = newVariablesTotal + ' €';
+
+        const soldeElement = document.getElementById('reduce-solde');
+        soldeElement.textContent = newSolde + ' €';
+
+        // Changer la couleur selon le solde
+        soldeElement.className = 'amount-neutral';
+        if (newSolde < 0) {
+            soldeElement.className = 'amount-negative';
+            soldeElement.style.color = '#ef4444';
+        } else if (newSolde > 0) {
+            soldeElement.className = 'amount-positive';
+            soldeElement.style.color = '#10b981';
+        } else {
+            soldeElement.style.color = '#f59e0b';
+        }
+    }
+
+    revalidateBudget() {
+        // Calculer le nouveau total des dépenses variables
+        const newVariablesTotal = this.variableExpenses.reduce((sum, exp) => sum + exp.currentAmount, 0);
+
+        // Calculer le nouveau solde
+        const newSolde = this.state.monthlyIncome - this.state.monthlyFixedExpenses - newVariablesTotal;
+
+        if (newSolde < 0) {
+            // Toujours en déficit, retourner à l'écran de choix
+            this.showBudgetImbalance(Math.abs(newSolde));
+        } else {
+            // Budget équilibré ou excédentaire
+            // Mettre à jour les montants dans les éléments du budget
+            this.variableExpenses.forEach(expense => {
+                expense.element.dataset.amount = expense.currentAmount;
+                // Mettre à jour le texte affiché
+                const lines = expense.element.textContent.split('\n');
+                expense.element.textContent = `${lines[0]}\n${expense.currentAmount} €`;
+            });
+
+            // Mettre à jour l'état
+            this.state.monthlyVariableExpenses = newVariablesTotal;
+
+            // Recalculer les totaux affichés
+            this.updateBudgetTotals();
+
+            // Message de succès
+            let message = `
+                <p><strong>✅ Budget équilibré avec succès !</strong></p>
+                <p>📊 Recettes totales : ${this.state.monthlyIncome} €</p>
+                <p>🏠 Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
+                <p>🛒 Dépenses variables : ${newVariablesTotal} €</p>
+                <p><strong>Solde : ${newSolde} €</strong></p>
+            `;
+
+            if (newSolde > 0) {
+                message += `<p style="color: #10b981;">✅ Parfait ! Tu as réussi à dégager un excédent de ${newSolde} €.</p>`;
+                // Bonus pour avoir bien géré le budget
+                this.state.totalScore += 50;
+                this.state.goodChoices += 1;
+                message += `<p style="color: #10b981;">🎉 Bonus : +50 points pour avoir équilibré ton budget !</p>`;
+            } else {
+                message += `<p style="color: #f59e0b;">⚖️ Budget équilibré : recettes = dépenses.</p>`;
+                this.state.goodChoices += 1;
+            }
+
+            this.showModal('Budget validé !', message, () => {
+                this.state.currentMonth = 2;
+                this.updateDisplay();
+                this.nextMonth();
+            });
+        }
+    }
+
+    cancelReduction() {
+        // Retourner à l'écran de déséquilibre
+        this.showBudgetImbalance(this.currentDeficit);
     }
 
     showMonthlyEvent(event) {
@@ -782,9 +1028,10 @@ class BudgetGame {
     }
 
     onModalConfirm() {
+        const callback = this.modalCallback;
         this.hideModal();
-        if (this.modalCallback) {
-            this.modalCallback();
+        if (callback) {
+            callback();
         }
     }
 
