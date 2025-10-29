@@ -98,9 +98,16 @@ class BudgetGame {
     }
 
     showPhase(phaseId) {
+        console.log('[showPhase] Changement de phase vers:', phaseId, 'depuis:', this.currentPhase);
         document.querySelectorAll('.phase-content').forEach(p => p.classList.remove('active'));
-        document.getElementById(phaseId).classList.add('active');
-        this.currentPhase = phaseId;
+        const targetPhase = document.getElementById(phaseId);
+        if (targetPhase) {
+            targetPhase.classList.add('active');
+            this.currentPhase = phaseId;
+            console.log('[showPhase] Phase activée avec succès:', phaseId);
+        } else {
+            console.error('[showPhase] ERREUR: Phase non trouvée:', phaseId);
+        }
     }
 
     startGame() {
@@ -421,20 +428,28 @@ class BudgetGame {
     }
 
     nextMonth() {
+        console.log('[nextMonth] Progression vers le mois', this.state.currentMonth);
+
         // Vérifier s'il y a un événement ce mois
         const event = GAME_DATA.monthlyEvents.find(e => e.month === this.state.currentMonth);
 
         if (event) {
+            console.log('[nextMonth] Événement trouvé pour le mois', this.state.currentMonth, ':', event.title);
             if (event.isCrisis) {
+                console.log('[nextMonth] Affichage de la crise');
                 this.showCrisis(event);
             } else {
+                console.log('[nextMonth] Affichage de l\'événement mensuel');
                 this.showMonthlyEvent(event);
             }
         } else {
+            console.log('[nextMonth] Aucun événement pour le mois', this.state.currentMonth);
             // Parfois un quiz
             if (Math.random() < 0.3 && this.state.quizAnswered < 5) {
+                console.log('[nextMonth] Affichage d\'un quiz');
                 this.showQuiz();
             } else {
+                console.log('[nextMonth] Avancement automatique au mois suivant');
                 this.advanceMonth();
             }
         }
@@ -463,6 +478,15 @@ class BudgetGame {
         const interestAmount = Math.round(deficit * 0.15);
         const monthlyRepayment = Math.round(creditCost / 12);
 
+        // Log de diagnostic
+        console.log('[handleTakeCredit] Avant application du crédit:', {
+            deficit,
+            creditCost,
+            monthlyRepayment,
+            currentIncome: this.state.monthlyIncome,
+            currentDebt: this.state.monthlyDebt
+        });
+
         // Ajouter le crédit aux revenus mensuels pour équilibrer le budget prévisionnel
         // (et NON au solde du compte, comme demandé pour la cohérence pédagogique)
         this.state.monthlyIncome += deficit;
@@ -481,8 +505,17 @@ class BudgetGame {
         // Compter comme mauvaise décision
         this.state.badChoices += 1;
 
-        // Calculer le nouveau reste disponible (devrait être proche de 0)
+        // Calculer le nouveau reste disponible (devrait être = 0 après le crédit)
         const newResteDisponible = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
+
+        // Log de diagnostic après application
+        console.log('[handleTakeCredit] Après application du crédit:', {
+            newIncome: this.state.monthlyIncome,
+            newDebt: this.state.monthlyDebt,
+            newResteDisponible,
+            isBalanced: newResteDisponible >= 0,
+            credits: this.state.credits
+        });
 
         // Message de feedback amélioré avec informations d'équilibrage
         const message = `
@@ -507,9 +540,26 @@ class BudgetGame {
             <p style="color: #ef4444;"><strong>⚠️ Important :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
         `;
 
+        // Afficher le modal avec callback pour continuer le jeu
         this.showModal('Budget équilibré par emprunt', message, () => {
+            console.log('[handleTakeCredit] Callback de modal exécuté - progression vers mois 2');
+
+            // Passer au mois 2
             this.state.currentMonth = 2;
+
+            // Mettre à jour l'affichage
             this.updateDisplay();
+
+            // Log avant navigation
+            console.log('[handleTakeCredit] État avant nextMonth():', {
+                currentMonth: this.state.currentMonth,
+                monthlyIncome: this.state.monthlyIncome,
+                monthlyDebt: this.state.monthlyDebt,
+                balance: this.state.balance,
+                isBalanced: newResteDisponible >= 0
+            });
+
+            // Passer à l'événement du mois suivant
             this.nextMonth();
         });
     }
@@ -694,7 +744,8 @@ class BudgetGame {
         document.getElementById('recap-revenus').textContent = this.state.monthlyIncome + ' €';
         document.getElementById('recap-fixes').textContent = this.state.monthlyFixedExpenses + ' €';
         document.getElementById('recap-variables').textContent = this.state.monthlyVariableExpenses + ' €';
-        const reste = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses - this.state.monthlyDebt;
+        // Calculer le reste disponible SANS inclure monthlyDebt (la dette est déduite du solde réel, pas du budget prévisionnel)
+        const reste = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
         document.getElementById('recap-reste').textContent = reste + ' €';
 
         // Événement
@@ -1044,10 +1095,15 @@ class BudgetGame {
     }
 
     onModalConfirm() {
+        console.log('[onModalConfirm] Modal confirmé, exécution du callback');
         const callback = this.modalCallback;
         this.hideModal();
         if (callback) {
+            console.log('[onModalConfirm] Callback trouvé, exécution en cours...');
             callback();
+            console.log('[onModalConfirm] Callback exécuté avec succès');
+        } else {
+            console.warn('[onModalConfirm] Aucun callback défini');
         }
     }
 
