@@ -464,6 +464,9 @@ class BudgetGame {
         // Ajouter le montant du déficit au solde (crédit accordé)
         this.state.balance += deficit;
 
+        // NOUVEAU : Ajouter le crédit aux revenus mensuels pour équilibrer le budget
+        this.state.monthlyIncome += deficit;
+
         // Ajouter la dette mensuelle (à rembourser sur 12 mois par exemple)
         // Pour simplifier, on ajoute la dette totale au remboursement mensuel
         // Dans un vrai système, on répartirait sur plusieurs mois
@@ -478,21 +481,31 @@ class BudgetGame {
         // Compter comme mauvaise décision
         this.state.badChoices += 1;
 
-        // Stocker les dépenses variables ajustées (aucun changement dans ce cas)
-        // car l'utilisateur n'a pas réduit les dépenses
+        // Recalculer le budget équilibré
+        const newResteDisponible = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
 
-        // Message de feedback
+        // Message de feedback amélioré avec informations d'équilibrage
         const message = `
-            <p><strong>Crédit accordé</strong></p>
+            <p><strong>✅ Votre budget a été équilibré grâce à un emprunt.</strong></p>
+            <p style="color: #f59e0b;"><strong>⚠️ Attention :</strong> Ce crédit entraîne un coût de financement supplémentaire (+15%).</p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p><strong>📊 Détails du crédit :</strong></p>
             <p>💳 Montant emprunté : ${deficit} €</p>
             <p>💰 Intérêts (15%) : ${interestAmount} €</p>
             <p><strong>⚠️ Coût total : ${creditCost} €</strong></p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p><strong>📊 Nouveau budget équilibré :</strong></p>
+            <p>💵 Revenus prévus : ${this.state.monthlyIncome} € <span style="color: #10b981;">(+${deficit} € de crédit)</span></p>
+            <p>🏠 Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
+            <p>🛒 Dépenses variables : ${this.state.monthlyVariableExpenses} €</p>
+            <p><strong>✅ Reste disponible : ${newResteDisponible} €</strong></p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
             <p>📉 Impact sur ton score : -${creditCost} points</p>
             <p><br><em>Le remboursement mensuel de ${Math.round(creditCost / 12)} € sera ajouté à tes dépenses fixes.</em></p>
-            <p style="color: #ef4444;"><strong>⚠️ Attention :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
+            <p style="color: #ef4444;"><strong>⚠️ Important :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
         `;
 
-        this.showModal('Crédit contracté', message, () => {
+        this.showModal('Budget équilibré par emprunt', message, () => {
             this.state.currentMonth = 2;
             this.updateDisplay();
             this.nextMonth();
@@ -536,8 +549,10 @@ class BudgetGame {
             expenseDiv.innerHTML = `
                 <div class="expense-info">
                     <span class="expense-name">${expense.name}</span>
+                    <span class="expense-original">Montant initial : ${expense.originalAmount} €</span>
                 </div>
                 <div class="expense-controls">
+                    <button onclick="game.adjustExpense(${index}, -10)" aria-label="Réduire de 10€">-</button>
                     <input type="number"
                            class="expense-input"
                            value="${expense.currentAmount}"
@@ -546,7 +561,6 @@ class BudgetGame {
                            data-index="${index}"
                            onchange="game.updateExpenseValue(${index}, this.value)">
                     <span class="expense-currency">€</span>
-                    <button onclick="game.adjustExpense(${index}, -10)" aria-label="Réduire de 10€">-</button>
                     <button onclick="game.adjustExpense(${index}, 10)" aria-label="Augmenter de 10€">+</button>
                 </div>
             `;
