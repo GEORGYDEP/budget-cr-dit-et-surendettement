@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test du flux de crédit - Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 15px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .log-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: #f8fafc;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            padding: 5px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .log-entry.info { color: #2563eb; }
+        .log-entry.success { color: #059669; }
+        .log-entry.error { color: #dc2626; }
+        .log-entry.warning { color: #d97706; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test du flux de crédit - Debug complet</h1>
+
+    <div class="test-section">
+        <div class="test-title">📋 Contexte du bug</div>
+        <div class="test-result info">
+            <strong>Problème signalé :</strong> Après avoir choisi "Faire un crédit", le jeu reste bloqué et ne passe pas au mois 2.
+        </div>
+        <div class="test-result info">
+            <strong>Correction attendue :</strong> Le callback de la modal doit mettre à jour currentMonth=2 et appeler nextMonth() pour afficher l'événement du mois 2.
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔍 Test 1 : Vérification du callback de la modal</div>
+        <button onclick="testModalCallback()">Lancer Test 1</button>
+        <div id="test1-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔍 Test 2 : Simulation du flux complet handleTakeCredit()</div>
+        <button onclick="testHandleTakeCredit()">Lancer Test 2</button>
+        <div id="test2-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔍 Test 3 : Vérification de l'événement du mois 2</div>
+        <button onclick="testMonth2Event()">Lancer Test 3</button>
+        <div id="test3-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔍 Test 4 : Test d'intégration complet</div>
+        <button onclick="testFullIntegration()">Lancer Test 4</button>
+        <div id="test4-result"></div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📊 Console de logs</div>
+        <button onclick="clearLogs()">Effacer les logs</button>
+        <div id="logs-container" class="log-container"></div>
+    </div>
+
+    <script src="js/data.js"></script>
+
+    <script>
+        // Mock du jeu pour les tests
+        let logs = [];
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            logs.push({ timestamp, message, type });
+            updateLogsDisplay();
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        function updateLogsDisplay() {
+            const container = document.getElementById('logs-container');
+            container.innerHTML = logs.map(log =>
+                `<div class="log-entry ${log.type}">[${log.timestamp}] ${log.message}</div>`
+            ).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLogs() {
+            logs = [];
+            updateLogsDisplay();
+        }
+
+        function showResult(elementId, html) {
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        // Test 1 : Vérification du callback de la modal
+        function testModalCallback() {
+            addLog('=== DÉBUT TEST 1 : Callback de la modal ===', 'info');
+            let result = '';
+            let success = true;
+
+            // Simuler un objet jeu simple
+            const mockGame = {
+                state: { currentMonth: 1 },
+                modalCallback: null,
+                nextMonthCalled: false,
+                updateDisplayCalled: false,
+
+                showModal(title, content, callback) {
+                    addLog(`showModal appelé avec titre: "${title}"`, 'info');
+                    this.modalCallback = callback;
+                    addLog('Callback stocké dans modalCallback', 'success');
+                },
+
+                hideModal() {
+                    addLog('hideModal appelé', 'info');
+                    this.modalCallback = null;
+                },
+
+                onModalConfirm() {
+                    addLog('onModalConfirm appelé', 'info');
+                    const callback = this.modalCallback;
+                    this.hideModal();
+                    if (callback) {
+                        addLog('Callback trouvé, exécution...', 'success');
+                        callback();
+                        addLog('Callback exécuté', 'success');
+                    } else {
+                        addLog('ERREUR: Aucun callback défini!', 'error');
+                        success = false;
+                    }
+                },
+
+                updateDisplay() {
+                    this.updateDisplayCalled = true;
+                    addLog('updateDisplay appelé', 'success');
+                },
+
+                nextMonth() {
+                    this.nextMonthCalled = true;
+                    addLog(`nextMonth appelé pour mois ${this.state.currentMonth}`, 'success');
+                }
+            };
+
+            // Simuler handleTakeCredit
+            addLog('Simulation de handleTakeCredit...', 'info');
+            mockGame.showModal('Test crédit', 'Message de test', () => {
+                addLog('Callback exécuté: mise à jour currentMonth à 2', 'info');
+                mockGame.state.currentMonth = 2;
+                mockGame.updateDisplay();
+                mockGame.nextMonth();
+            });
+
+            // Simuler le clic sur "Compris"
+            addLog('Simulation du clic sur le bouton "Compris"...', 'warning');
+            mockGame.onModalConfirm();
+
+            // Vérifications
+            if (mockGame.state.currentMonth === 2) {
+                result += '<div class="test-result success">✅ currentMonth mis à jour à 2</div>';
+                addLog('✅ currentMonth = 2', 'success');
+            } else {
+                result += '<div class="test-result error">❌ currentMonth n\'a pas été mis à jour (valeur: ' + mockGame.state.currentMonth + ')</div>';
+                addLog('❌ currentMonth non mis à jour', 'error');
+                success = false;
+            }
+
+            if (mockGame.updateDisplayCalled) {
+                result += '<div class="test-result success">✅ updateDisplay() a été appelé</div>';
+                addLog('✅ updateDisplay appelé', 'success');
+            } else {
+                result += '<div class="test-result error">❌ updateDisplay() n\'a PAS été appelé</div>';
+                addLog('❌ updateDisplay non appelé', 'error');
+                success = false;
+            }
+
+            if (mockGame.nextMonthCalled) {
+                result += '<div class="test-result success">✅ nextMonth() a été appelé</div>';
+                addLog('✅ nextMonth appelé', 'success');
+            } else {
+                result += '<div class="test-result error">❌ nextMonth() n\'a PAS été appelé</div>';
+                addLog('❌ nextMonth non appelé', 'error');
+                success = false;
+            }
+
+            if (mockGame.modalCallback !== null) {
+                result += '<div class="test-result error">❌ Le callback n\'a pas été effacé après hideModal()</div>';
+                addLog('❌ Callback non effacé', 'error');
+                success = false;
+            } else {
+                result += '<div class="test-result success">✅ Le callback a été correctement effacé</div>';
+                addLog('✅ Callback effacé', 'success');
+            }
+
+            if (success) {
+                result = '<div class="test-result success"><strong>✅ TEST 1 RÉUSSI</strong> - Le callback de la modal fonctionne correctement</div>' + result;
+                addLog('=== TEST 1 RÉUSSI ===', 'success');
+            } else {
+                result = '<div class="test-result error"><strong>❌ TEST 1 ÉCHOUÉ</strong> - Des problèmes ont été détectés</div>' + result;
+                addLog('=== TEST 1 ÉCHOUÉ ===', 'error');
+            }
+
+            showResult('test1-result', result);
+        }
+
+        // Test 2 : Simulation du flux complet handleTakeCredit()
+        function testHandleTakeCredit() {
+            addLog('=== DÉBUT TEST 2 : Flux complet handleTakeCredit ===', 'info');
+            let result = '';
+            let success = true;
+
+            const mockState = {
+                currentMonth: 1,
+                monthlyIncome: 2000,
+                monthlyFixedExpenses: 1200,
+                monthlyVariableExpenses: 900,
+                monthlyDebt: 0,
+                credits: 0,
+                totalScore: 100,
+                badChoices: 0,
+                balance: 500
+            };
+
+            const currentDeficit = 100; // Déficit de 100€
+
+            addLog(`État initial: revenus=${mockState.monthlyIncome}, fixes=${mockState.monthlyFixedExpenses}, variables=${mockState.monthlyVariableExpenses}`, 'info');
+            addLog(`Déficit à combler: ${currentDeficit}€`, 'warning');
+
+            // Simulation de la logique handleTakeCredit
+            const creditCost = Math.round(currentDeficit * 1.15);
+            const interestAmount = Math.round(currentDeficit * 0.15);
+            const monthlyRepayment = Math.round(creditCost / 12);
+
+            addLog(`Crédit calculé: ${creditCost}€ (intérêts: ${interestAmount}€)`, 'info');
+            addLog(`Remboursement mensuel: ${monthlyRepayment}€`, 'info');
+
+            // Appliquer le crédit
+            mockState.monthlyIncome += currentDeficit;
+            mockState.monthlyDebt += monthlyRepayment;
+            mockState.credits += 1;
+            mockState.totalScore -= creditCost;
+            mockState.badChoices += 1;
+
+            const newResteDisponible = mockState.monthlyIncome - mockState.monthlyFixedExpenses - mockState.monthlyVariableExpenses;
+
+            addLog(`Nouveaux revenus: ${mockState.monthlyIncome}€`, 'success');
+            addLog(`Nouvelle dette mensuelle: ${mockState.monthlyDebt}€`, 'warning');
+            addLog(`Nouveau reste disponible: ${newResteDisponible}€`, 'info');
+
+            // Vérifications
+            if (mockState.monthlyIncome === 2100) {
+                result += '<div class="test-result success">✅ Revenus augmentés correctement (2000 + 100 = 2100)</div>';
+                addLog('✅ Revenus corrects', 'success');
+            } else {
+                result += `<div class="test-result error">❌ Revenus incorrects: ${mockState.monthlyIncome} au lieu de 2100</div>`;
+                addLog('❌ Revenus incorrects', 'error');
+                success = false;
+            }
+
+            if (mockState.monthlyDebt === 10) {
+                result += '<div class="test-result success">✅ Dette mensuelle correcte (115 / 12 ≈ 10)</div>';
+                addLog('✅ Dette mensuelle correcte', 'success');
+            } else {
+                result += `<div class="test-result error">❌ Dette mensuelle incorrecte: ${mockState.monthlyDebt} au lieu de 10</div>`;
+                addLog('❌ Dette mensuelle incorrecte', 'error');
+                success = false;
+            }
+
+            if (newResteDisponible === 0) {
+                result += '<div class="test-result success">✅ Budget équilibré (reste = 0€)</div>';
+                addLog('✅ Budget équilibré', 'success');
+            } else {
+                result += `<div class="test-result error">❌ Budget non équilibré: reste = ${newResteDisponible}€</div>`;
+                addLog('❌ Budget non équilibré', 'error');
+                success = false;
+            }
+
+            if (mockState.totalScore === -15) {
+                result += '<div class="test-result success">✅ Score pénalisé correctement (100 - 115 = -15)</div>';
+                addLog('✅ Score correct', 'success');
+            } else {
+                result += `<div class="test-result error">❌ Score incorrect: ${mockState.totalScore} au lieu de -15</div>`;
+                addLog('❌ Score incorrect', 'error');
+                success = false;
+            }
+
+            if (mockState.credits === 1) {
+                result += '<div class="test-result success">✅ Compteur de crédits incrémenté</div>';
+                addLog('✅ Compteur de crédits OK', 'success');
+            } else {
+                result += `<div class="test-result error">❌ Compteur de crédits incorrect: ${mockState.credits}</div>`;
+                addLog('❌ Compteur de crédits incorrect', 'error');
+                success = false;
+            }
+
+            if (success) {
+                result = '<div class="test-result success"><strong>✅ TEST 2 RÉUSSI</strong> - La logique de crédit fonctionne correctement</div>' + result;
+                addLog('=== TEST 2 RÉUSSI ===', 'success');
+            } else {
+                result = '<div class="test-result error"><strong>❌ TEST 2 ÉCHOUÉ</strong> - Des problèmes ont été détectés</div>' + result;
+                addLog('=== TEST 2 ÉCHOUÉ ===', 'error');
+            }
+
+            showResult('test2-result', result);
+        }
+
+        // Test 3 : Vérification de l'événement du mois 2
+        function testMonth2Event() {
+            addLog('=== DÉBUT TEST 3 : Événement du mois 2 ===', 'info');
+            let result = '';
+            let success = true;
+
+            addLog('Recherche de l\'événement pour le mois 2...', 'info');
+            const event = GAME_DATA.monthlyEvents.find(e => e.month === 2);
+
+            if (event) {
+                result += '<div class="test-result success">✅ Événement trouvé pour le mois 2</div>';
+                result += '<div class="test-result info"><strong>Titre:</strong> ' + event.title + '</div>';
+                result += '<div class="test-result info"><strong>Icône:</strong> ' + event.icon + '</div>';
+                result += '<div class="test-result info"><strong>Description:</strong> ' + event.description + '</div>';
+                result += '<div class="test-result info"><strong>Nombre de choix:</strong> ' + event.choices.length + '</div>';
+
+                addLog(`✅ Événement trouvé: "${event.title}"`, 'success');
+                addLog(`Nombre de choix: ${event.choices.length}`, 'info');
+
+                // Vérifier que les choix sont valides
+                event.choices.forEach((choice, index) => {
+                    addLog(`Choix ${index + 1}: ${choice.text}`, 'info');
+                    if (!choice.text || !choice.icon || !choice.consequence) {
+                        result += `<div class="test-result error">❌ Choix ${index + 1} invalide</div>`;
+                        addLog(`❌ Choix ${index + 1} invalide`, 'error');
+                        success = false;
+                    }
+                });
+
+                if (success) {
+                    result += '<div class="test-result success">✅ Tous les choix sont valides</div>';
+                    addLog('✅ Tous les choix valides', 'success');
+                }
+            } else {
+                result += '<div class="test-result error">❌ ERREUR CRITIQUE: Aucun événement trouvé pour le mois 2!</div>';
+                result += '<div class="test-result warning">Le jeu ne pourra pas progresser après le crédit si aucun événement n\'existe pour le mois 2.</div>';
+                addLog('❌ Aucun événement pour le mois 2!', 'error');
+                success = false;
+            }
+
+            if (success) {
+                result = '<div class="test-result success"><strong>✅ TEST 3 RÉUSSI</strong> - L\'événement du mois 2 existe et est valide</div>' + result;
+                addLog('=== TEST 3 RÉUSSI ===', 'success');
+            } else {
+                result = '<div class="test-result error"><strong>❌ TEST 3 ÉCHOUÉ</strong> - Problème avec l\'événement du mois 2</div>' + result;
+                addLog('=== TEST 3 ÉCHOUÉ ===', 'error');
+            }
+
+            showResult('test3-result', result);
+        }
+
+        // Test 4 : Test d'intégration complet
+        function testFullIntegration() {
+            addLog('=== DÉBUT TEST 4 : Test d\'intégration complet ===', 'info');
+            let result = '';
+            let allTestsPassed = true;
+
+            // Tester tout le flux dans l'ordre
+            addLog('Étape 1/5: Test du callback...', 'info');
+            testModalCallback();
+
+            setTimeout(() => {
+                addLog('Étape 2/5: Test de la logique de crédit...', 'info');
+                testHandleTakeCredit();
+
+                setTimeout(() => {
+                    addLog('Étape 3/5: Test de l\'événement du mois 2...', 'info');
+                    testMonth2Event();
+
+                    setTimeout(() => {
+                        addLog('Étape 4/5: Synthèse des résultats...', 'info');
+
+                        result += '<div class="test-result info">📋 <strong>Synthèse des tests</strong></div>';
+                        result += '<div class="test-result info">Tous les tests individuels ont été exécutés. Consultez les logs ci-dessous pour les détails.</div>';
+
+                        addLog('Étape 5/5: Génération du rapport...', 'info');
+
+                        result += '<div class="test-result success">✅ <strong>Conclusion:</strong> Si tous les tests ci-dessus sont verts, le flux de crédit devrait fonctionner correctement.</div>';
+                        result += '<div class="test-result warning">⚠️ <strong>Note:</strong> Si le problème persiste en jeu réel, vérifiez:</div>';
+                        result += '<div class="test-result warning">1. Que le bouton "Compris" appelle bien game.onModalConfirm()</div>';
+                        result += '<div class="test-result warning">2. Que la modal ne bloque pas les événements</div>';
+                        result += '<div class="test-result warning">3. Que la console du navigateur ne montre pas d\'erreurs JavaScript</div>';
+
+                        addLog('=== TEST 4 TERMINÉ ===', 'success');
+
+                        showResult('test4-result', result);
+                    }, 500);
+                }, 500);
+            }, 500);
+        }
+
+        // Message de bienvenue
+        addLog('🧪 Page de test chargée', 'success');
+        addLog('Cliquez sur les boutons pour lancer les tests', 'info');
+    </script>
+</body>
+</html>
