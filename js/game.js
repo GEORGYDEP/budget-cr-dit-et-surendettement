@@ -535,11 +535,9 @@ class BudgetGame {
             expenseDiv.className = 'expense-item';
             expenseDiv.innerHTML = `
                 <div class="expense-info">
-                    <div class="expense-name">${expense.name}</div>
-                    <div class="expense-original">Montant initial : ${expense.originalAmount} €</div>
+                    <span class="expense-name">${expense.name}</span>
                 </div>
                 <div class="expense-controls">
-                    <button onclick="game.adjustExpense(${index}, -10)" aria-label="Réduire de 10€">-</button>
                     <input type="number"
                            class="expense-input"
                            value="${expense.currentAmount}"
@@ -547,6 +545,8 @@ class BudgetGame {
                            max="${expense.originalAmount}"
                            data-index="${index}"
                            onchange="game.updateExpenseValue(${index}, this.value)">
+                    <span class="expense-currency">€</span>
+                    <button onclick="game.adjustExpense(${index}, -10)" aria-label="Réduire de 10€">-</button>
                     <button onclick="game.adjustExpense(${index}, 10)" aria-label="Augmenter de 10€">+</button>
                 </div>
             `;
