@@ -6,17 +6,17 @@ const GAME_DATA = {
         facile: {
             salaire: 2500,
             allocations: 200,
-            economiesBase: 500
+            economiesBase: 1000
         },
         moyen: {
             salaire: 1800,
             allocations: 150,
-            economiesBase: 200
+            economiesBase: 0
         },
         difficile: {
             salaire: 1400,
             allocations: 200,
-            economiesBase: 0
+            economiesBase: -500
         }
     },
 
