@@ -300,7 +300,7 @@ class BudgetGame {
         this.state.budgetClassified = true;
 
         const reste = totals.totalRecettes - totals.totalFixes - totals.totalVariables;
-        
+
         let message = `
             <p><strong>Ton budget prévisionnel est établi !</strong></p>
             <p>📊 Recettes totales : ${totals.totalRecettes} €</p>
@@ -311,13 +311,10 @@ class BudgetGame {
 
         if (reste < 0) {
             message += `<p style="color: #ef4444;">⚠️ Attention ! Tes dépenses dépassent tes revenus de ${Math.abs(reste)} €. Tu es en déficit budgétaire. Il faudra réduire les dépenses variables.</p>`;
-            this.state.totalScore -= 20;
         } else if (reste > 0) {
             message += `<p style="color: #10b981;">✅ Parfait ! Tu dégages un excédent de ${reste} €. Tu peux épargner !</p>`;
-            this.state.totalScore += 50;
         } else {
             message += `<p style="color: #f59e0b;">⚖️ Budget équilibré : recettes = dépenses.</p>`;
-            this.state.totalScore += 30;
         }
 
         message += `
@@ -363,11 +360,12 @@ class BudgetGame {
         this.showPhase('phase-monthly');
 
         document.getElementById('monthly-title').textContent = `📅 Mois ${this.state.currentMonth} : ${event.title}`;
-        
+
         // Récap budget
         document.getElementById('recap-revenus').textContent = this.state.monthlyIncome + ' €';
         document.getElementById('recap-fixes').textContent = this.state.monthlyFixedExpenses + ' €';
-        const reste = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyDebt;
+        document.getElementById('recap-variables').textContent = this.state.monthlyVariableExpenses + ' €';
+        const reste = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses - this.state.monthlyDebt;
         document.getElementById('recap-reste').textContent = reste + ' €';
 
         // Événement
