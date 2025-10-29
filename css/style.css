@@ -1298,6 +1298,13 @@ body {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+.expense-currency {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-left: -10px;
+}
+
 .btn-secondary {
     background: var(--text-secondary);
     color: var(--text-color);

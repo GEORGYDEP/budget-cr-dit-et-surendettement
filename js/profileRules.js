@@ -30,8 +30,8 @@ const ProfileRules = {
         }
         else if (situation === 'couple') {
             if (nbEnfants === 0) {
-                // Couple sans enfant: revenu ménage = 2 700 €
-                rules.income = 2700;
+                // Couple sans enfant: revenu ménage = 2 300 €
+                rules.income = 2300;
                 rules.allocations = 0;
                 rules.showAllocations = false;
             } else {
@@ -46,15 +46,15 @@ const ProfileRules = {
 
                 // Calcul du revenu
                 if (nbSalaries === 1) {
-                    rules.income = 1800;
+                    rules.income = 2700;
                     if (hasChomage) {
-                        rules.income += 1170; // 65% de 1800
+                        rules.income += 1755; // 65% de 2700
                     }
                     rules.label = "Couple avec une seule personne qui travaille";
                 } else if (nbSalaries === 2) {
                     rules.income = 2700;
                 } else if (nbSalaries === 0 && hasChomage) {
-                    rules.income = 1170 + 1170; // 2 allocations chômage
+                    rules.income = 1755 + 1755; // 2 allocations chômage (65% de 2700)
                 }
 
                 // Allocations familiales selon nombre d'enfants
@@ -72,15 +72,15 @@ const ProfileRules = {
             }
 
             if (nbSalaries === 1) {
-                rules.income = 1800;
+                rules.income = 2700;
                 if (hasChomage) {
-                    rules.income += 1170;
+                    rules.income += 1755; // 65% de 2700
                 }
                 rules.label = "Couple avec une seule personne qui travaille";
             } else if (nbSalaries === 2) {
                 rules.income = 2700;
             } else if (nbSalaries === 0 && hasChomage) {
-                rules.income = 1170 + 1170;
+                rules.income = 1755 + 1755; // 2 allocations chômage (65% de 2700)
             }
 
             // Pour "famille", on suppose au moins 1 enfant
