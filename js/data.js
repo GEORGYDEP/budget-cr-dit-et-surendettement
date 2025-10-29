@@ -21,13 +21,14 @@ const GAME_DATA = {
     },
 
     // Éléments à classer pour le budget prévisionnel
+    // Les montants seront ajustés selon le profil dans game.js
     budgetItems: [
         // Recettes
         { id: 'salaire', label: 'Salaire mensuel', amount: 0, type: 'recettes', category: 'travail' },
-        { id: 'allocations', label: 'Allocations familiales', amount: 160, type: 'recettes', category: 'social' },
+        { id: 'allocations', label: 'Allocations familiales', amount: 0, type: 'recettes', category: 'social' },
         { id: 'chomage', label: 'Allocations chômage', amount: 0, type: 'recettes', category: 'social' },
         { id: 'interets', label: 'Intérêts reçus de notre épargne', amount: 15, type: 'recettes', category: 'financier' },
-        
+
         // Dépenses fixes
         { id: 'loyer', label: 'Loyer', amount: 750, type: 'fixes', category: 'logement' },
         { id: 'electricite', label: 'Électricité & Gaz', amount: 180, type: 'fixes', category: 'energie' },
@@ -36,13 +37,13 @@ const GAME_DATA = {
         { id: 'assurance-hab', label: 'Assurance habitation', amount: 35, type: 'fixes', category: 'assurance' },
         { id: 'assurance-auto', label: 'Assurance auto', amount: 80, type: 'fixes', category: 'assurance' },
         { id: 'mutuelle', label: 'Mutuelle', amount: 45, type: 'fixes', category: 'sante' },
-        
-        // Dépenses variables
-        { id: 'alimentation', label: 'Alimentation', amount: 400, type: 'variables', category: 'courante' },
-        { id: 'hygiene', label: 'Hygiène & Entretien', amount: 80, type: 'variables', category: 'courante' },
-        { id: 'vetements', label: 'Vêtements', amount: 100, type: 'variables', category: 'courante' },
+
+        // Dépenses variables (ajustées selon profil)
+        { id: 'alimentation', label: 'Alimentation', amount: 0, type: 'variables', category: 'courante' },
+        { id: 'hygiene', label: 'Hygiène & Entretien', amount: 0, type: 'variables', category: 'courante' },
+        { id: 'vetements', label: 'Vêtements', amount: 0, type: 'variables', category: 'courante' },
         { id: 'transport', label: 'Transport (carburant)', amount: 150, type: 'variables', category: 'courante' },
-        { id: 'sante-var', label: 'Santé (non remboursé)', amount: 50, type: 'variables', category: 'courante' },
+        { id: 'sante-var', label: 'Santé (non remboursé)', amount: 0, type: 'variables', category: 'courante' },
         { id: 'loisirs', label: 'Loisirs & Sorties', amount: 120, type: 'variables', category: 'occasionnel' },
         { id: 'epargne', label: 'Épargne mensuelle', amount: 100, type: 'variables', category: 'epargne' }
     ],

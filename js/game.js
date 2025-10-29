@@ -30,6 +30,7 @@ class BudgetGame {
         this.currentEvent = null;
         this.currentQuiz = null;
         this.quizQuestions = [];
+        this.modalCallback = null; // Callback à exécuter lors du clic sur "Compris"
 
         this.init();
     }
@@ -58,12 +59,12 @@ class BudgetGame {
             this.validateBudget();
         });
 
-        // Modal
+        // Modal - Bouton "Compris"
         document.querySelector('.modal-close').addEventListener('click', () => {
             this.hideModal();
         });
         document.querySelector('.modal-ok').addEventListener('click', () => {
-            this.hideModal();
+            this.onModalConfirm();
         });
 
         // Boutons finaux
@@ -106,16 +107,29 @@ class BudgetGame {
         this.state.situation = situation;
         this.state.job = job;
 
-        // Configuration selon la difficulté
+        // Configuration selon la difficulté (pour épargne initiale)
         const diffConfig = GAME_DATA.difficulty[this.state.difficulty];
-        this.state.monthlyIncome = diffConfig.salaire;
         this.state.balance = diffConfig.economiesBase;
         this.state.savings = diffConfig.economiesBase;
 
-        // Ajuster les revenus selon la situation
-        if (situation === 'famille') {
-            this.state.monthlyIncome += 200; // Allocations familiales
+        // Appliquer les règles de revenu selon le profil
+        // Pour simplification, on suppose : famille = 2 enfants, couple = 0 enfants
+        const nbEnfants = situation === 'famille' ? 2 : 0;
+        const incomeRules = ProfileRules.applyIncomeRules(
+            situation,
+            this.state.difficulty,
+            nbEnfants,
+            true, // hasSalary1
+            false, // hasSalary2 (par défaut)
+            false  // hasChomage
+        );
+
+        if (incomeRules.error) {
+            this.showNotification(incomeRules.error, 'error');
+            return;
         }
+
+        this.state.monthlyIncome = incomeRules.income + incomeRules.allocations;
 
         // Afficher le nom
         document.getElementById('display-name').textContent = name;
@@ -127,24 +141,75 @@ class BudgetGame {
 
     startBudgetPhase() {
         this.showPhase('phase-budget');
-        
+
         // Créer les éléments à classer
         const itemsPool = document.getElementById('items-pool');
         itemsPool.innerHTML = '';
 
-        // Ajuster le salaire dans les données
+        // Appliquer les règles de profil
+        const nbEnfants = this.state.situation === 'famille' ? 2 : 0;
+        const incomeRules = ProfileRules.applyIncomeRules(
+            this.state.situation,
+            this.state.difficulty,
+            nbEnfants,
+            true, false, false
+        );
+        const expenseRules = ProfileRules.applyExpenseRules(
+            this.state.situation,
+            nbEnfants
+        );
+
+        // Ajuster les montants dans les données
         const items = JSON.parse(JSON.stringify(GAME_DATA.budgetItems));
+
+        // Recettes
         const salaireItem = items.find(item => item.id === 'salaire');
         if (salaireItem) {
-            salaireItem.amount = this.state.monthlyIncome;
+            salaireItem.amount = incomeRules.income;
         }
 
-        // Ajuster selon la situation
-        if (this.state.situation === 'seul') {
-            // Retirer allocations familiales
-            const index = items.findIndex(item => item.id === 'allocations');
-            if (index > -1) items.splice(index, 1);
+        const allocationsItem = items.find(item => item.id === 'allocations');
+        if (allocationsItem) {
+            allocationsItem.amount = incomeRules.allocations;
         }
+
+        // Dépenses variables selon profil
+        const alimentationItem = items.find(item => item.id === 'alimentation');
+        if (alimentationItem) {
+            alimentationItem.amount = expenseRules.alimentation;
+        }
+
+        const hygieneItem = items.find(item => item.id === 'hygiene');
+        if (hygieneItem) {
+            hygieneItem.amount = expenseRules.hygiene;
+        }
+
+        const vetementsItem = items.find(item => item.id === 'vetements');
+        if (vetementsItem) {
+            vetementsItem.amount = expenseRules.vetements;
+        }
+
+        const santeItem = items.find(item => item.id === 'sante-var');
+        if (santeItem) {
+            santeItem.amount = expenseRules.sante;
+        }
+
+        // Retirer les éléments qui ne doivent pas être affichés
+        const itemsToRemove = [];
+
+        // Retirer allocations si pas affichées
+        if (!incomeRules.showAllocations) {
+            itemsToRemove.push('allocations');
+        }
+
+        // Retirer chômage par défaut
+        itemsToRemove.push('chomage');
+
+        // Supprimer les items à retirer
+        itemsToRemove.forEach(id => {
+            const index = items.findIndex(item => item.id === id);
+            if (index > -1) items.splice(index, 1);
+        });
 
         items.forEach(item => {
             const itemEl = document.createElement('div');
@@ -322,17 +387,19 @@ class BudgetGame {
             <ul style="text-align: left; margin-left: 20px;">
                 <li>Les <strong>dépenses fixes</strong> sont prioritaires (loyer, assurances...)</li>
                 <li>Les <strong>dépenses variables</strong> peuvent être ajustées</li>
-                <li>L'<strong>épargne</strong> doit être considérée comme une "dépense" obligatoire</li>
+                <li>${ProfileRules.getSavingsMessage()}</li>
             </ul>
         `;
 
-        this.showModal('Budget validé !', message);
+        if (reste < 0) {
+            message += `<p style="color: #ef4444;"><em>${ProfileRules.getSavingsWarning()}</em></p>`;
+        }
 
-        setTimeout(() => {
+        this.showModal('Budget validé !', message, () => {
             this.state.currentMonth = 2;
             this.updateDisplay();
             this.nextMonth();
-        }, 5000);
+        });
     }
 
     nextMonth() {
@@ -473,17 +540,13 @@ class BudgetGame {
             consequence: consequence
         });
 
-        // Afficher le feedback
-        this.showModal('Résultat de ton choix', consequence.feedback);
-
         // Mettre à jour l'affichage
         this.updateDisplay();
 
-        // Passer au mois suivant
-        setTimeout(() => {
-            this.hideModal();
+        // Afficher le feedback avec callback pour avancer au mois suivant
+        this.showModal('Résultat de ton choix', consequence.feedback, () => {
             this.advanceMonth();
-        }, 4000);
+        });
     }
 
     showQuiz() {
@@ -535,23 +598,34 @@ class BudgetGame {
         if (isCorrect) {
             btn.classList.add('correct');
             feedback.className = 'quiz-feedback show correct';
-            feedback.textContent = '✅ Correct ! ' + this.currentQuiz.explanation;
+            feedback.innerHTML = '✅ Correct ! ' + this.currentQuiz.explanation;
             this.state.totalScore += 20;
             this.state.quizCorrect++;
         } else {
             btn.classList.add('incorrect');
             feedback.className = 'quiz-feedback show incorrect';
-            feedback.textContent = '❌ Incorrect. ' + this.currentQuiz.explanation;
-            
+            feedback.innerHTML = '❌ Incorrect. ' + this.currentQuiz.explanation;
+
             // Montrer la bonne réponse
             document.querySelectorAll('.quiz-option')[this.currentQuiz.correct].classList.add('correct');
         }
 
-        this.updateDisplay();
-
-        setTimeout(() => {
+        // Ajouter le bouton "Compris"
+        const comprisBtn = document.createElement('button');
+        comprisBtn.className = 'btn-primary quiz-continue';
+        comprisBtn.textContent = 'Compris';
+        comprisBtn.style.marginTop = '20px';
+        comprisBtn.addEventListener('click', () => {
             this.advanceMonth();
-        }, 5000);
+        });
+        feedback.appendChild(comprisBtn);
+
+        // Focus sur le bouton pour l'accessibilité
+        setTimeout(() => {
+            comprisBtn.focus();
+        }, 100);
+
+        this.updateDisplay();
     }
 
     advanceMonth() {
@@ -689,15 +763,29 @@ class BudgetGame {
         document.getElementById('total-score').textContent = this.state.totalScore;
     }
 
-    showModal(title, content) {
+    showModal(title, content, callback = null) {
         const modal = document.getElementById('info-modal');
         document.getElementById('modal-title').textContent = title;
         document.getElementById('modal-body').innerHTML = content;
+        this.modalCallback = callback;
         modal.classList.add('show');
+
+        // Focus sur le bouton "Compris" pour l'accessibilité
+        setTimeout(() => {
+            document.querySelector('.modal-ok').focus();
+        }, 100);
     }
 
     hideModal() {
         document.getElementById('info-modal').classList.remove('show');
+        this.modalCallback = null;
+    }
+
+    onModalConfirm() {
+        this.hideModal();
+        if (this.modalCallback) {
+            this.modalCallback();
+        }
     }
 
     showNotification(message, type = 'info') {
