@@ -26,7 +26,7 @@ const GAME_DATA = {
         { id: 'salaire', label: 'Salaire mensuel', amount: 0, type: 'recettes', category: 'travail' },
         { id: 'allocations', label: 'Allocations familiales', amount: 160, type: 'recettes', category: 'social' },
         { id: 'chomage', label: 'Allocations chômage', amount: 0, type: 'recettes', category: 'social' },
-        { id: 'interets', label: 'Intérêts épargne', amount: 15, type: 'recettes', category: 'financier' },
+        { id: 'interets', label: 'Intérêts reçus de notre épargne', amount: 15, type: 'recettes', category: 'financier' },
         
         // Dépenses fixes
         { id: 'loyer', label: 'Loyer', amount: 750, type: 'fixes', category: 'logement' },

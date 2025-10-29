@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Budget Life Simulator - Gestion Budgétaire</title>
+    <title>Simulateur de budget - Gestion Budgétaire</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <!-- Écran d'accueil -->
         <div id="welcome-screen" class="screen active">
             <div class="welcome-content">
-                <h1>💰 Budget Life Simulator</h1>
+                <h1>💰 Simulateur de budget</h1>
                 <p class="subtitle">Apprends à gérer ton budget comme un pro !</p>
                 <div class="game-info">
                     <p>🎯 Objectif : Gérer tes finances pendant 12 mois sans tomber dans le surendettement</p>
@@ -32,8 +32,8 @@
             <div class="character-content">
                 <h2>👤 Crée ton profil</h2>
                 <div class="character-form">
-                    <label>Ton prénom :</label>
-                    <input type="text" id="player-name" placeholder="Entre ton prénom" maxlength="20">
+                    <label>Adresse e-mail :</label>
+                    <input type="email" id="player-name" placeholder="prenom.nom@istlm.org" pattern=".+@istlm\.org" required>
                     
                     <label>Ta situation :</label>
                     <select id="player-situation">
