@@ -1051,6 +1051,8 @@ class BudgetGame {
 }
 
 // Initialiser le jeu au chargement
+let game; // Variable globale pour accéder au jeu depuis les boutons
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new BudgetGame();
+    game = new BudgetGame();
+    window.game = game; // Rendre accessible globalement pour les onclick
 });

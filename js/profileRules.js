@@ -30,8 +30,8 @@ const ProfileRules = {
         }
         else if (situation === 'couple') {
             if (nbEnfants === 0) {
-                // Couple sans enfant: revenu ménage = 2 300 €
-                rules.income = 2300;
+                // Couple sans enfant: revenu ménage = 2 700 €
+                rules.income = 2700;
                 rules.allocations = 0;
                 rules.showAllocations = false;
             } else {
@@ -52,7 +52,7 @@ const ProfileRules = {
                     }
                     rules.label = "Couple avec une seule personne qui travaille";
                 } else if (nbSalaries === 2) {
-                    rules.income = 2300;
+                    rules.income = 2700;
                 } else if (nbSalaries === 0 && hasChomage) {
                     rules.income = 1170 + 1170; // 2 allocations chômage
                 }
@@ -78,7 +78,7 @@ const ProfileRules = {
                 }
                 rules.label = "Couple avec une seule personne qui travaille";
             } else if (nbSalaries === 2) {
-                rules.income = 2300;
+                rules.income = 2700;
             } else if (nbSalaries === 0 && hasChomage) {
                 rules.income = 1170 + 1170;
             }

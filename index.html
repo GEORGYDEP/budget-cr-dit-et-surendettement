@@ -20,9 +20,10 @@
                 </div>
                 <div class="difficulty-selection">
                     <h3>Choisis ton niveau :</h3>
-                    <button class="btn-difficulty" data-level="facile">😊 Facile<br><small>Revenus confortables</small></button>
-                    <button class="btn-difficulty" data-level="moyen">😐 Moyen<br><small>Budget serré</small></button>
-                    <button class="btn-difficulty" data-level="difficile">😰 Difficile<br><small>Survie financière</small></button>
+                    <p class="difficulty-info">💡 Votre solde bancaire de départ varie selon le niveau choisi.</p>
+                    <button class="btn-difficulty" data-level="facile">😊 Facile<br><small>Revenus confortables (+1000 €)</small></button>
+                    <button class="btn-difficulty" data-level="moyen">😐 Moyen<br><small>Budget serré (0 €)</small></button>
+                    <button class="btn-difficulty" data-level="difficile">😰 Difficile<br><small>Survie financière (-500 €)</small></button>
                 </div>
             </div>
         </div>
@@ -64,7 +65,7 @@
                     <span class="month-display">📅 Mois <span id="current-month">1</span>/12</span>
                 </div>
                 <div class="budget-gauge">
-                    <div class="gauge-label">💰 Solde</div>
+                    <div class="gauge-label">💰 Solde de votre compte bancaire</div>
                     <div class="gauge-value" id="current-balance">0 €</div>
                     <div class="gauge-bar">
                         <div class="gauge-fill" id="gauge-fill"></div>
