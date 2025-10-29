@@ -127,6 +127,77 @@
                     </div>
                 </div>
 
+                <!-- Phase 1b: Budget en déséquilibre -->
+                <div id="phase-budget-imbalance" class="phase-content">
+                    <div class="imbalance-alert">
+                        <div class="imbalance-icon">⚠️</div>
+                        <h2>Budget en déséquilibre</h2>
+                        <p class="imbalance-message">
+                            Votre budget est en déséquilibre.<br>
+                            <strong>Déficit : <span id="deficit-amount">0</span> €</strong>
+                        </p>
+                        <p class="imbalance-explanation">
+                            Vous avez deux possibilités :
+                        </p>
+                        <div class="imbalance-choices">
+                            <button id="reduce-expenses-btn" class="choice-btn choice-good">
+                                <span class="choice-icon">✂️</span>
+                                <span class="choice-text">
+                                    <strong>Réduire vos dépenses</strong>
+                                    <small>Ajustez vos dépenses variables pour équilibrer votre budget</small>
+                                </span>
+                            </button>
+                            <button id="take-credit-btn" class="choice-btn choice-bad">
+                                <span class="choice-icon">💳</span>
+                                <span class="choice-text">
+                                    <strong>Contracter un crédit</strong>
+                                    <small id="credit-details">Coût total avec intérêts : 0 €</small>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 1c: Réduction des dépenses -->
+                <div id="phase-reduce-expenses" class="phase-content">
+                    <h2>✂️ Réduction des dépenses variables</h2>
+                    <p class="reduce-intro">
+                        Ajustez vos dépenses variables pour équilibrer votre budget.<br>
+                        <strong>Déficit à combler : <span id="deficit-to-cover">0</span> €</strong>
+                    </p>
+
+                    <div class="budget-recap">
+                        <div class="recap-item">
+                            <span>Revenus :</span>
+                            <span class="amount-positive" id="reduce-revenus">0 €</span>
+                        </div>
+                        <div class="recap-item">
+                            <span>Dépenses fixes :</span>
+                            <span class="amount-negative" id="reduce-fixes">0 €</span>
+                        </div>
+                        <div class="recap-item">
+                            <span>Dépenses variables :</span>
+                            <span class="amount-negative" id="reduce-variables-total">0 €</span>
+                        </div>
+                        <div class="recap-item recap-solde">
+                            <span>Solde :</span>
+                            <span id="reduce-solde" class="amount-neutral">0 €</span>
+                        </div>
+                    </div>
+
+                    <div class="expenses-adjustment">
+                        <h3>Ajustez vos dépenses variables :</h3>
+                        <div id="variable-expenses-list">
+                            <!-- Les dépenses variables seront ajoutées dynamiquement -->
+                        </div>
+                    </div>
+
+                    <div class="phase-actions">
+                        <button id="revalidate-budget-btn" class="btn-primary">Revalider le budget 📊</button>
+                        <button id="cancel-reduction-btn" class="btn-secondary">Annuler</button>
+                    </div>
+                </div>
+
                 <!-- Phase 2: Gestion mensuelle -->
                 <div id="phase-monthly" class="phase-content">
                     <div class="monthly-summary">

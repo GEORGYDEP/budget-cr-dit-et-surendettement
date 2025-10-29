@@ -1059,3 +1059,291 @@ body {
         padding: 20px;
     }
 }
+
+/* ========================================
+   NOUVELLES PHASES: Budget Déséquilibre
+   ======================================== */
+
+/* Phase Budget en Déséquilibre */
+.imbalance-alert {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 40px;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+    border: 2px solid var(--danger-color);
+}
+
+.imbalance-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.imbalance-alert h2 {
+    color: var(--danger-color);
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.imbalance-message {
+    font-size: 1.2em;
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.imbalance-message strong {
+    color: var(--danger-color);
+    font-size: 1.3em;
+}
+
+.imbalance-explanation {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    color: var(--text-secondary);
+}
+
+.imbalance-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.imbalance-choices .choice-btn {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background: rgba(99, 102, 241, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.imbalance-choices .choice-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.imbalance-choices .choice-btn.choice-good {
+    border-color: var(--success-color);
+}
+
+.imbalance-choices .choice-btn.choice-good:hover {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+.imbalance-choices .choice-btn.choice-bad {
+    border-color: var(--danger-color);
+}
+
+.imbalance-choices .choice-btn.choice-bad:hover {
+    background: rgba(239, 68, 68, 0.15);
+}
+
+.choice-icon {
+    font-size: 48px;
+    flex-shrink: 0;
+}
+
+.choice-text {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.choice-text strong {
+    font-size: 1.2em;
+    color: var(--text-color);
+}
+
+.choice-text small {
+    color: var(--text-secondary);
+    font-size: 0.9em;
+}
+
+/* Phase Réduction des Dépenses */
+#phase-reduce-expenses {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+#phase-reduce-expenses h2 {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+.reduce-intro {
+    text-align: center;
+    font-size: 1.1em;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid var(--danger-color);
+}
+
+.reduce-intro strong {
+    color: var(--danger-color);
+    font-size: 1.2em;
+}
+
+.recap-solde {
+    border-top: 2px solid var(--primary-color);
+    padding-top: 15px;
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.expenses-adjustment {
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    margin: 30px 0;
+}
+
+.expenses-adjustment h3 {
+    margin-bottom: 25px;
+    color: var(--primary-color);
+}
+
+#variable-expenses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.expense-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.expense-info {
+    flex: 1;
+}
+
+.expense-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.expense-original {
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.expense-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.expense-controls button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    font-size: 1.5em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.expense-controls button:hover {
+    transform: scale(1.1);
+    background: var(--secondary-color);
+}
+
+.expense-controls button:active {
+    transform: scale(0.95);
+}
+
+.expense-input {
+    width: 120px;
+    padding: 10px;
+    font-size: 1.1em;
+    text-align: center;
+    border-radius: 8px;
+    border: 2px solid var(--primary-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.expense-input:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.btn-secondary {
+    background: var(--text-secondary);
+    color: var(--text-color);
+    padding: 15px 40px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: var(--surface-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive pour les nouvelles phases */
+@media (max-width: 768px) {
+    .imbalance-alert {
+        padding: 30px 20px;
+    }
+
+    .imbalance-icon {
+        font-size: 60px;
+    }
+
+    .imbalance-alert h2 {
+        font-size: 1.5em;
+    }
+
+    .imbalance-message {
+        font-size: 1em;
+    }
+
+    .choice-icon {
+        font-size: 36px;
+    }
+
+    .expense-item {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .expense-controls {
+        width: 100%;
+        justify-content: center;
+    }
+}
