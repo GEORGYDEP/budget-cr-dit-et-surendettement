@@ -92,7 +92,13 @@ class BudgetGame {
         const job = document.getElementById('player-job').value;
 
         if (!name) {
-            this.showNotification('Entre ton prénom pour commencer !', 'warning');
+            this.showNotification('Entre ton adresse e-mail pour commencer !', 'warning');
+            return;
+        }
+
+        // Valider le format email @istlm.org
+        if (!name.match(/.+@istlm\.org$/)) {
+            this.showNotification('Utilise ton adresse e-mail @istlm.org !', 'warning');
             return;
         }
 
@@ -162,6 +168,50 @@ class BudgetGame {
 
             itemEl.addEventListener('dragend', (e) => {
                 itemEl.style.opacity = '1';
+            });
+
+            // Support tactile pour tablettes
+            let touchStartX, touchStartY, originalParent;
+            itemEl.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                touchStartX = touch.clientX;
+                touchStartY = touch.clientY;
+                originalParent = itemEl.parentElement;
+                itemEl.style.opacity = '0.5';
+                itemEl.style.position = 'fixed';
+                itemEl.style.zIndex = '1000';
+                itemEl.style.pointerEvents = 'none';
+            });
+
+            itemEl.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                const touch = e.touches[0];
+                itemEl.style.left = touch.clientX - 50 + 'px';
+                itemEl.style.top = touch.clientY - 20 + 'px';
+            });
+
+            itemEl.addEventListener('touchend', (e) => {
+                itemEl.style.opacity = '1';
+                itemEl.style.position = 'static';
+                itemEl.style.pointerEvents = 'auto';
+
+                const touch = e.changedTouches[0];
+                const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+                const dropZone = dropTarget?.closest('.drop-zone');
+
+                if (dropZone && !itemEl.classList.contains('placed')) {
+                    const expectedType = dropZone.dataset.type;
+                    const itemType = itemEl.dataset.type;
+
+                    if (itemType === expectedType) {
+                        dropZone.appendChild(itemEl);
+                        itemEl.classList.add('placed');
+                        this.updateBudgetTotals();
+                        this.showNotification('✅ Bien placé !', 'success');
+                    } else {
+                        this.showNotification('❌ Mauvaise catégorie ! Réessaie.', 'error');
+                    }
+                }
             });
         });
 
