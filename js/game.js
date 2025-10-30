@@ -517,51 +517,26 @@ class BudgetGame {
             credits: this.state.credits
         });
 
-        // Message de feedback amélioré avec informations d'équilibrage
-        const message = `
-            <p><strong>✅ Votre budget a été équilibré grâce à un emprunt.</strong></p>
-            <p style="color: #f59e0b;"><strong>⚠️ Attention :</strong> Ce crédit augmente vos revenus prévus, mais génère un coût supplémentaire de 15%.</p>
-            <hr style="margin: 15px 0; border: 1px solid #ddd;">
-            <p><strong>📊 Détails du crédit :</strong></p>
-            <p>💳 Montant emprunté : ${deficit} €</p>
-            <p>💰 Intérêts (15%) : ${interestAmount} €</p>
-            <p><strong>⚠️ Coût total : ${creditCost} €</strong></p>
-            <p>📅 Remboursement mensuel : ${monthlyRepayment} € (sur 12 mois)</p>
-            <hr style="margin: 15px 0; border: 1px solid #ddd;">
-            <p><strong>📊 Nouveau budget équilibré :</strong></p>
-            <p>💵 Revenus prévus : ${this.state.monthlyIncome} € <span style="color: #10b981;">(+${deficit} € de crédit)</span></p>
-            <p>🏠 Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
-            <p>🛒 Dépenses variables : ${this.state.monthlyVariableExpenses} €</p>
-            <p><strong>💰 Dépenses totales : ${this.state.monthlyFixedExpenses + this.state.monthlyVariableExpenses} €</strong></p>
-            <p><strong style="color: ${newResteDisponible === 0 ? '#f59e0b' : (newResteDisponible > 0 ? '#10b981' : '#ef4444')};">✅ Reste disponible : ${newResteDisponible} €</strong></p>
-            <hr style="margin: 15px 0; border: 1px solid #ddd;">
-            <p>📉 Impact sur votre score : -${creditCost} points</p>
-            <p><br><em>💸 Le remboursement mensuel de ${monthlyRepayment} € sera automatiquement déduit de votre solde chaque mois.</em></p>
-            <p style="color: #ef4444;"><strong>⚠️ Important :</strong> Contracter un crédit pour un déficit budgétaire n'est généralement pas une bonne solution à long terme. Il est préférable d'ajuster ses dépenses.</p>
-        `;
+        // Passer directement au mois 2 sans écran intermédiaire
+        console.log('[handleTakeCredit] Progression directe vers mois 2');
 
-        // Afficher le modal avec callback pour continuer le jeu
-        this.showModal('Budget équilibré par emprunt', message, () => {
-            console.log('[handleTakeCredit] Callback de modal exécuté - progression vers mois 2');
+        // Passer au mois 2
+        this.state.currentMonth = 2;
 
-            // Passer au mois 2
-            this.state.currentMonth = 2;
+        // Mettre à jour l'affichage
+        this.updateDisplay();
 
-            // Mettre à jour l'affichage
-            this.updateDisplay();
-
-            // Log avant navigation
-            console.log('[handleTakeCredit] État avant nextMonth():', {
-                currentMonth: this.state.currentMonth,
-                monthlyIncome: this.state.monthlyIncome,
-                monthlyDebt: this.state.monthlyDebt,
-                balance: this.state.balance,
-                isBalanced: newResteDisponible >= 0
-            });
-
-            // Passer à l'événement du mois suivant
-            this.nextMonth();
+        // Log avant navigation
+        console.log('[handleTakeCredit] État avant nextMonth():', {
+            currentMonth: this.state.currentMonth,
+            monthlyIncome: this.state.monthlyIncome,
+            monthlyDebt: this.state.monthlyDebt,
+            balance: this.state.balance,
+            isBalanced: newResteDisponible >= 0
         });
+
+        // Passer à l'événement du mois suivant
+        this.nextMonth();
     }
 
     showReduceExpenses() {
