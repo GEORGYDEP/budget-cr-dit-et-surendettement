@@ -59,6 +59,11 @@ class BudgetGame {
             this.validateBudget();
         });
 
+        // Bouton de secours pour sauter la classification du budget
+        document.getElementById('skip-budget-classification').addEventListener('click', () => {
+            this.skipBudgetClassification();
+        });
+
         // Gestion du déséquilibre budgétaire
         document.getElementById('reduce-expenses-btn').addEventListener('click', () => {
             this.showReduceExpenses();
@@ -78,6 +83,21 @@ class BudgetGame {
         // Bouton de secours pour forcer la transition
         document.getElementById('force-continue-btn').addEventListener('click', () => {
             this.forceContinue();
+        });
+
+        // Bouton de secours pour forcer la transition depuis phase-budget-imbalance
+        document.getElementById('force-budget-imbalance-skip').addEventListener('click', () => {
+            this.forceContinueBudgetImbalance();
+        });
+
+        // Bouton de secours pour forcer la transition depuis phase-monthly
+        document.getElementById('force-monthly-continue').addEventListener('click', () => {
+            this.forceMonthlyAdvance();
+        });
+
+        // Bouton de secours pour forcer la transition depuis phase-crisis
+        document.getElementById('force-crisis-continue').addEventListener('click', () => {
+            this.forceMonthlyAdvance();
         });
 
         // Modal - Bouton "Compris"
@@ -376,13 +396,52 @@ class BudgetGame {
         // Activer le bouton de validation si tout est classé
         const itemsPool = document.getElementById('items-pool');
         const remainingItems = itemsPool.querySelectorAll('.budget-item:not(.placed)').length;
-        
+
         if (remainingItems === 0) {
             document.getElementById('validate-budget-btn').disabled = false;
             this.showNotification('🎉 Tous les éléments sont classés ! Tu peux valider.', 'success');
         }
 
         return { totalRecettes, totalFixes, totalVariables };
+    }
+
+    skipBudgetClassification() {
+        // Bouton de secours pour placer automatiquement tous les éléments dans les bonnes zones
+        console.log('[skipBudgetClassification] Placement automatique des éléments');
+
+        const itemsPool = document.getElementById('items-pool');
+        const items = Array.from(itemsPool.querySelectorAll('.budget-item:not(.placed)'));
+
+        let placedCount = 0;
+
+        items.forEach(item => {
+            const expectedType = item.dataset.type;
+            const zone = document.getElementById(`${expectedType}-zone`);
+
+            if (zone && expectedType) {
+                zone.appendChild(item);
+                item.classList.add('placed');
+                placedCount++;
+            } else {
+                console.warn('[skipBudgetClassification] Type non reconnu pour l\'élément:', item.dataset.id, expectedType);
+            }
+        });
+
+        // Mettre à jour les totaux
+        this.updateBudgetTotals();
+
+        // Message de confirmation
+        const message = `
+            <p><strong>✅ Placement automatique effectué</strong></p>
+            <p>Tous les éléments non classés ont été automatiquement placés dans leurs catégories appropriées.</p>
+            <p>📊 Éléments placés : ${placedCount}</p>
+            <p><br><em>💡 Conseil : Vérifiez que tous les éléments sont bien placés avant de valider.</em></p>
+        `;
+
+        this.showModal('Placement automatique', message, () => {
+            // Activer le bouton de validation
+            document.getElementById('validate-budget-btn').disabled = false;
+        });
     }
 
     validateBudget() {
@@ -773,11 +832,99 @@ class BudgetGame {
         });
     }
 
+    forceContinueBudgetImbalance() {
+        // Bouton de secours pour forcer la transition depuis l'écran de déséquilibre budgétaire
+        console.log('[forceContinueBudgetImbalance] Transition forcée depuis phase-budget-imbalance');
+
+        const deficit = this.currentDeficit;
+        const newResteDisponible = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
+
+        // Message de confirmation avec avertissement
+        const message = `
+            <p><strong>⚠️ Passage forcé au mois suivant</strong></p>
+            <p>Vous avez utilisé le bouton de secours pour ignorer le déséquilibre budgétaire.</p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p><strong>📊 État de votre budget :</strong></p>
+            <p>💵 Revenus prévus : ${this.state.monthlyIncome} €</p>
+            <p>🏠 Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
+            <p>🛒 Dépenses variables : ${this.state.monthlyVariableExpenses} €</p>
+            <p><strong style="color: ${newResteDisponible < 0 ? '#ef4444' : '#f59e0b'};">💰 Reste disponible : ${newResteDisponible} €</strong></p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p style="color: #ef4444;"><strong>⚠️ Attention :</strong> Vous continuerez avec un budget déséquilibré, ce qui aura un impact négatif sur votre progression.</p>
+            <p>📉 Pénalité appliquée : -50 points</p>
+        `;
+
+        this.showModal('Budget déséquilibré - Passage forcé', message, () => {
+            console.log('[forceContinueBudgetImbalance] Callback de modal exécuté - progression vers mois 2');
+
+            // Appliquer une pénalité pour avoir ignoré le déséquilibre
+            this.state.totalScore -= 50;
+            this.state.badChoices += 1;
+
+            // Passer au mois 2
+            this.state.currentMonth = 2;
+
+            // Mettre à jour l'affichage
+            this.updateDisplay();
+
+            // Log avant navigation
+            console.log('[forceContinueBudgetImbalance] État avant nextMonth():', {
+                currentMonth: this.state.currentMonth,
+                monthlyIncome: this.state.monthlyIncome,
+                balance: this.state.balance,
+                deficit: deficit
+            });
+
+            // Passer à l'événement du mois suivant
+            this.nextMonth();
+        });
+    }
+
+    forceMonthlyAdvance() {
+        // Bouton de secours pour forcer la transition depuis phase-monthly ou phase-crisis
+        console.log('[forceMonthlyAdvance] Transition forcée depuis phase-monthly ou phase-crisis');
+
+        const message = `
+            <p><strong>⚠️ Passage forcé au mois suivant</strong></p>
+            <p>Vous avez utilisé le bouton de secours pour passer au mois suivant sans faire de choix.</p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p><strong>📊 État actuel :</strong></p>
+            <p>📅 Mois actuel : ${this.state.currentMonth}</p>
+            <p>💰 Solde : ${this.state.balance} €</p>
+            <p>🏆 Score : ${this.state.totalScore}</p>
+            <hr style="margin: 15px 0; border: 1px solid #ddd;">
+            <p style="color: #ef4444;"><strong>⚠️ Attention :</strong> Vous avez sauté l'événement de ce mois.</p>
+        `;
+
+        this.showModal('Passage au mois suivant', message, () => {
+            console.log('[forceMonthlyAdvance] Callback de modal exécuté - avancement au mois suivant');
+
+            // Mettre à jour l'affichage
+            this.updateDisplay();
+
+            // Passer au mois suivant
+            this.advanceMonth();
+        });
+    }
+
     showMonthlyEvent(event) {
         this.currentEvent = event;
         this.showPhase('phase-monthly');
 
-        document.getElementById('monthly-title').textContent = `📅 Mois ${this.state.currentMonth} : ${event.title}`;
+        // Validation de l'événement
+        if (!event) {
+            console.error('[showMonthlyEvent] Événement invalide (null ou undefined)');
+            this.showFallbackEventChoice();
+            return;
+        }
+
+        if (!event.choices || !Array.isArray(event.choices) || event.choices.length === 0) {
+            console.error('[showMonthlyEvent] Événement sans choix valides:', event);
+            this.showFallbackEventChoice();
+            return;
+        }
+
+        document.getElementById('monthly-title').textContent = `📅 Mois ${this.state.currentMonth} : ${event.title || 'Événement du mois'}`;
 
         // Récap budget
         document.getElementById('recap-revenus').textContent = this.state.monthlyIncome + ' €';
@@ -788,9 +935,9 @@ class BudgetGame {
         document.getElementById('recap-reste').textContent = reste + ' €';
 
         // Événement
-        document.querySelector('.event-icon').textContent = event.icon;
-        document.getElementById('event-title').textContent = event.title;
-        document.getElementById('event-description').textContent = event.description;
+        document.querySelector('.event-icon').textContent = event.icon || '⚡';
+        document.getElementById('event-title').textContent = event.title || 'Situation du mois';
+        document.getElementById('event-description').textContent = event.description || '';
 
         // Choix
         const choicesContainer = document.getElementById('event-choices');
@@ -800,9 +947,9 @@ class BudgetGame {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.innerHTML = `
-                <span class="choice-icon">${choice.icon}</span>
-                ${choice.text}
-                <span class="choice-impact">${choice.impact}</span>
+                <span class="choice-icon">${choice.icon || '❓'}</span>
+                ${choice.text || 'Choix ' + (index + 1)}
+                <span class="choice-impact">${choice.impact || ''}</span>
             `;
             btn.addEventListener('click', () => {
                 this.handleChoice(choice);
@@ -811,12 +958,60 @@ class BudgetGame {
         });
     }
 
+    showFallbackEventChoice() {
+        // Fallback en cas d'événement mal formé
+        console.warn('[showFallbackEventChoice] Affichage du choix de secours');
+
+        document.getElementById('monthly-title').textContent = `📅 Mois ${this.state.currentMonth}`;
+
+        // Récap budget
+        document.getElementById('recap-revenus').textContent = this.state.monthlyIncome + ' €';
+        document.getElementById('recap-fixes').textContent = this.state.monthlyFixedExpenses + ' €';
+        document.getElementById('recap-variables').textContent = this.state.monthlyVariableExpenses + ' €';
+        const reste = this.state.monthlyIncome - this.state.monthlyFixedExpenses - this.state.monthlyVariableExpenses;
+        document.getElementById('recap-reste').textContent = reste + ' €';
+
+        // Événement par défaut
+        document.querySelector('.event-icon').textContent = '⚠️';
+        document.getElementById('event-title').textContent = 'Événement non disponible';
+        document.getElementById('event-description').textContent = 'L\'événement de ce mois ne peut pas être affiché correctement.';
+
+        // Choix de secours
+        const choicesContainer = document.getElementById('event-choices');
+        choicesContainer.innerHTML = `
+            <button class="choice-btn" style="background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success-color);">
+                <span class="choice-icon">➡️</span>
+                <span class="choice-text">
+                    <strong>Continuer au mois suivant</strong>
+                    <small>Passer ce mois (bouton de secours)</small>
+                </span>
+            </button>
+        `;
+
+        choicesContainer.querySelector('button').addEventListener('click', () => {
+            this.advanceMonth();
+        });
+    }
+
     showCrisis(event) {
         this.currentEvent = event;
         this.showPhase('phase-crisis');
 
-        document.getElementById('crisis-title').textContent = event.title;
-        document.getElementById('crisis-description').textContent = event.description;
+        // Validation de l'événement de crise
+        if (!event) {
+            console.error('[showCrisis] Événement de crise invalide (null ou undefined)');
+            this.showFallbackCrisisChoice();
+            return;
+        }
+
+        if (!event.choices || !Array.isArray(event.choices) || event.choices.length === 0) {
+            console.error('[showCrisis] Événement de crise sans choix valides:', event);
+            this.showFallbackCrisisChoice();
+            return;
+        }
+
+        document.getElementById('crisis-title').textContent = event.title || 'Événement majeur !';
+        document.getElementById('crisis-description').textContent = event.description || '';
 
         // Impact
         const impactDetails = document.getElementById('crisis-impact-details');
@@ -834,14 +1029,46 @@ class BudgetGame {
             const btn = document.createElement('button');
             btn.className = 'choice-btn';
             btn.innerHTML = `
-                <span class="choice-icon">${choice.icon}</span>
-                ${choice.text}
-                <span class="choice-impact">${choice.impact}</span>
+                <span class="choice-icon">${choice.icon || '❓'}</span>
+                ${choice.text || 'Choix'}
+                <span class="choice-impact">${choice.impact || ''}</span>
             `;
             btn.addEventListener('click', () => {
                 this.handleChoice(choice);
             });
             choicesContainer.appendChild(btn);
+        });
+    }
+
+    showFallbackCrisisChoice() {
+        // Fallback en cas d'événement de crise mal formé
+        console.warn('[showFallbackCrisisChoice] Affichage du choix de secours pour crise');
+
+        document.getElementById('crisis-title').textContent = 'Événement non disponible';
+        document.getElementById('crisis-description').textContent = 'L\'événement de ce mois ne peut pas être affiché correctement.';
+
+        // Impact
+        const impactDetails = document.getElementById('crisis-impact-details');
+        impactDetails.innerHTML = `
+            <p>💰 Ton solde actuel : ${this.state.balance} €</p>
+            <p>💎 Ton épargne : ${this.state.savings} €</p>
+            <p>💳 Tes crédits en cours : ${this.state.credits}</p>
+        `;
+
+        // Choix de secours
+        const choicesContainer = document.getElementById('crisis-choices');
+        choicesContainer.innerHTML = `
+            <button class="choice-btn" style="background: rgba(16, 185, 129, 0.2); border: 2px solid var(--success-color);">
+                <span class="choice-icon">➡️</span>
+                <span class="choice-text">
+                    <strong>Continuer au mois suivant</strong>
+                    <small>Passer ce mois (bouton de secours)</small>
+                </span>
+            </button>
+        `;
+
+        choicesContainer.querySelector('button').addEventListener('click', () => {
+            this.advanceMonth();
         });
     }
 
