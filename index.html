@@ -142,23 +142,27 @@
                 <div id="phase-budget-imbalance" class="phase-content">
                     <div class="imbalance-alert">
                         <div class="imbalance-icon">⚠️</div>
-                        <h2>Budget en déséquilibre !</h2>
+                        <h2>Budget en déséquilibre</h2>
                         <p class="imbalance-message">
                             Votre budget est en déséquilibre.<br>
                             <strong>Déficit : <span id="deficit-amount">0</span> €</strong>
                         </p>
-                        <p class="imbalance-explanation" style="color: #ef4444; font-weight: bold; margin: 20px 0;">
-                            ⛔ Vous devez équilibrer votre budget avant de continuer le jeu.
-                        </p>
                         <p class="imbalance-explanation">
-                            Pour équilibrer votre budget, vous devez réduire vos dépenses variables :
+                            Vous avez deux possibilités :
                         </p>
                         <div class="imbalance-choices">
                             <button id="reduce-expenses-btn" class="choice-btn choice-good">
                                 <span class="choice-icon">✂️</span>
                                 <span class="choice-text">
-                                    <strong>Réduire vos dépenses variables</strong>
-                                    <small>Ajustez vos dépenses pour équilibrer votre budget</small>
+                                    <strong>Réduire vos dépenses</strong>
+                                    <small>Ajustez vos dépenses variables pour équilibrer votre budget</small>
+                                </span>
+                            </button>
+                            <button id="take-credit-btn" class="choice-btn choice-bad">
+                                <span class="choice-icon">💳</span>
+                                <span class="choice-text">
+                                    <strong>Contracter un crédit</strong>
+                                    <small id="credit-details">Coût total avec intérêts : 0 €</small>
                                 </span>
                             </button>
                         </div>

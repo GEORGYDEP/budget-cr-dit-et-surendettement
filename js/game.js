@@ -68,6 +68,9 @@ class BudgetGame {
         document.getElementById('reduce-expenses-btn').addEventListener('click', () => {
             this.showReduceExpenses();
         });
+        document.getElementById('take-credit-btn').addEventListener('click', () => {
+            this.handleTakeCredit();
+        });
 
         // Réduction des dépenses
         document.getElementById('revalidate-budget-btn').addEventListener('click', () => {
@@ -526,11 +529,13 @@ class BudgetGame {
 
         // Afficher le montant du déficit
         document.getElementById('deficit-amount').textContent = deficit;
+
+        // Calculer le coût total du crédit (déficit + 15%)
+        const creditCost = deficit * 1.15;
+        document.getElementById('credit-details').textContent =
+            `Coût total avec intérêts (15%) : ${Math.round(creditCost)} €`;
     }
 
-    // FONCTION DÉSACTIVÉE : La possibilité de prendre un crédit pour équilibrer un budget en déséquilibre a été supprimée.
-    // L'élève doit maintenant OBLIGATOIREMENT réduire ses dépenses pour poursuivre le jeu.
-    // Cette fonction est conservée pour référence mais n'est plus utilisée.
     handleTakeCredit() {
         const deficit = this.currentDeficit;
         const creditCost = Math.round(deficit * 1.15);
