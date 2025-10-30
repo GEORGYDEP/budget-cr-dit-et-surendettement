@@ -125,16 +125,6 @@
 
                     <div class="phase-actions">
                         <button id="validate-budget-btn" class="btn-primary" disabled>Valider mon budget 📊</button>
-
-                        <!-- Bouton de secours pour sauter l'étape de classification -->
-                        <div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid rgba(255, 255, 255, 0.2);">
-                            <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 10px; text-align: center;">
-                                ⚠️ En cas de problème technique avec le drag & drop
-                            </p>
-                            <button id="skip-budget-classification" class="btn-secondary" title="Placer automatiquement les éléments (bouton de secours)">
-                                ⏭️ Placer automatiquement
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -164,16 +154,6 @@
                                     <strong>Contracter un crédit</strong>
                                     <small id="credit-details">Coût total avec intérêts : 0 €</small>
                                 </span>
-                            </button>
-                        </div>
-
-                        <!-- Bouton de secours pour forcer la transition -->
-                        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid rgba(255, 255, 255, 0.2);">
-                            <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 10px; text-align: center;">
-                                ⚠️ En cas de blocage technique
-                            </p>
-                            <button id="force-budget-imbalance-skip" class="force-continue-btn" title="Passer au mois suivant (bouton de secours)" style="position: static; margin: 0 auto; display: block;">
-                                ➡️ Continuer malgré tout
                             </button>
                         </div>
                     </div>
@@ -226,11 +206,6 @@
 
                 <!-- Phase 2: Gestion mensuelle -->
                 <div id="phase-monthly" class="phase-content">
-                    <!-- Bouton de secours pour forcer le passage au mois suivant -->
-                    <button id="force-monthly-continue" class="force-continue-btn" title="Passer au mois suivant (bouton de secours)">
-                        ➡️ Continuer
-                    </button>
-
                     <div class="monthly-summary">
                         <h2 id="monthly-title">📅 Mois 2 : Gestion du quotidien</h2>
                         <div class="budget-recap">
@@ -269,11 +244,6 @@
 
                 <!-- Phase 3: Événement spécial / Crise -->
                 <div id="phase-crisis" class="phase-content">
-                    <!-- Bouton de secours pour forcer le passage au mois suivant -->
-                    <button id="force-crisis-continue" class="force-continue-btn" title="Passer au mois suivant (bouton de secours)">
-                        ➡️ Continuer
-                    </button>
-
                     <div class="crisis-alert">
                         <div class="crisis-icon">⚠️</div>
                         <h2 id="crisis-title">Événement majeur !</h2>
