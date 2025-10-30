@@ -75,11 +75,6 @@ class BudgetGame {
             this.cancelReduction();
         });
 
-        // Bouton de secours pour forcer la transition
-        document.getElementById('force-continue-btn').addEventListener('click', () => {
-            this.forceContinue();
-        });
-
         // Modal - Bouton "Compris"
         document.querySelector('.modal-close').addEventListener('click', () => {
             this.hideModal();
@@ -737,40 +732,6 @@ class BudgetGame {
     cancelReduction() {
         // Retourner à l'écran de déséquilibre
         this.showBudgetImbalance(this.currentDeficit);
-    }
-
-    forceContinue() {
-        // Bouton de secours pour forcer la transition au mois suivant
-        // Mettre à jour les dépenses variables avec les montants ajustés (si disponibles)
-        if (this.variableExpenses && this.variableExpenses.length > 0) {
-            const newVariablesTotal = this.variableExpenses.reduce((sum, exp) => sum + exp.currentAmount, 0);
-
-            // Mettre à jour les montants dans les éléments du budget
-            this.variableExpenses.forEach(expense => {
-                expense.element.dataset.amount = expense.currentAmount;
-                const lines = expense.element.textContent.split('\n');
-                expense.element.textContent = `${lines[0]}\n${expense.currentAmount} €`;
-            });
-
-            // Mettre à jour l'état
-            this.state.monthlyVariableExpenses = newVariablesTotal;
-        }
-
-        // Message de confirmation
-        const message = `
-            <p><strong>⚠️ Transition forcée vers le mois suivant</strong></p>
-            <p>Vous avez utilisé le bouton de secours pour passer au mois suivant.</p>
-            <p>📊 Budget actuel :</p>
-            <p>• Recettes : ${this.state.monthlyIncome} €</p>
-            <p>• Dépenses fixes : ${this.state.monthlyFixedExpenses} €</p>
-            <p>• Dépenses variables : ${this.state.monthlyVariableExpenses} €</p>
-        `;
-
-        this.showModal('Passage au mois suivant', message, () => {
-            this.state.currentMonth = 2;
-            this.updateDisplay();
-            this.nextMonth();
-        });
     }
 
     showMonthlyEvent(event) {
